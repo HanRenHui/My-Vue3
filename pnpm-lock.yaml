@@ -1,0 +1,165 @@
+lockfileVersion: 5.3
+
+importers:
+
+  .:
+    specifiers:
+      typescript: ^4.6.4
+      vue: ^3.2.33
+    dependencies:
+      typescript: 4.6.4
+      vue: 3.2.33
+
+packages:
+
+  /@babel/parser/7.17.12:
+    resolution: {integrity: sha1-NsLtBpRONpG6gnNfxM9i0S1JGiM=}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+    dev: false
+
+  /@vue/compiler-core/3.2.33:
+    resolution: {integrity: sha1-6RXVnM6FiY9cXP6+TAnlOSeMPVk=}
+    dependencies:
+      '@babel/parser': 7.17.12
+      '@vue/shared': 3.2.33
+      estree-walker: 2.0.2
+      source-map: 0.6.1
+    dev: false
+
+  /@vue/compiler-dom/3.2.33:
+    resolution: {integrity: sha1-bbhClvlJ8Y5dPn/V6A+UPb7X1ew=}
+    dependencies:
+      '@vue/compiler-core': 3.2.33
+      '@vue/shared': 3.2.33
+    dev: false
+
+  /@vue/compiler-sfc/3.2.33:
+    resolution: {integrity: sha1-fOAdyUeot2wJmBHcbKWElNTcdz0=}
+    dependencies:
+      '@babel/parser': 7.17.12
+      '@vue/compiler-core': 3.2.33
+      '@vue/compiler-dom': 3.2.33
+      '@vue/compiler-ssr': 3.2.33
+      '@vue/reactivity-transform': 3.2.33
+      '@vue/shared': 3.2.33
+      estree-walker: 2.0.2
+      magic-string: 0.25.9
+      postcss: 8.4.13
+      source-map: 0.6.1
+    dev: false
+
+  /@vue/compiler-ssr/3.2.33:
+    resolution: {integrity: sha1-PoICZ+TupI/elRnwBt7co/XkLnE=}
+    dependencies:
+      '@vue/compiler-dom': 3.2.33
+      '@vue/shared': 3.2.33
+    dev: false
+
+  /@vue/reactivity-transform/3.2.33:
+    resolution: {integrity: sha1-KGBj9EylYVCum1L4NGom5ZE/ppk=}
+    dependencies:
+      '@babel/parser': 7.17.12
+      '@vue/compiler-core': 3.2.33
+      '@vue/shared': 3.2.33
+      estree-walker: 2.0.2
+      magic-string: 0.25.9
+    dev: false
+
+  /@vue/reactivity/3.2.33:
+    resolution: {integrity: sha1-yE7ttSJRONv8JHKGTBUdPvu0tnM=}
+    dependencies:
+      '@vue/shared': 3.2.33
+    dev: false
+
+  /@vue/runtime-core/3.2.33:
+    resolution: {integrity: sha1-LfiQfIXDfDQZ+9G98aLfCX+kDfI=}
+    dependencies:
+      '@vue/reactivity': 3.2.33
+      '@vue/shared': 3.2.33
+    dev: false
+
+  /@vue/runtime-dom/3.2.33:
+    resolution: {integrity: sha1-EjuJaSRwKeoNnBmDZ21HBqli2Eg=}
+    dependencies:
+      '@vue/runtime-core': 3.2.33
+      '@vue/shared': 3.2.33
+      csstype: 2.6.20
+    dev: false
+
+  /@vue/server-renderer/3.2.33_vue@3.2.33:
+    resolution: {integrity: sha1-S0XW0q4Q6k49LPjmdoBM9g8zGXk=}
+    peerDependencies:
+      vue: 3.2.33
+    dependencies:
+      '@vue/compiler-ssr': 3.2.33
+      '@vue/shared': 3.2.33
+      vue: 3.2.33
+    dev: false
+
+  /@vue/shared/3.2.33:
+    resolution: {integrity: sha1-aajJnOs3wbAx1cxK7C/x3HfhFh4=}
+    dev: false
+
+  /csstype/2.6.20:
+    resolution: {integrity: sha1-kinGXqCyYM9NPZl8sGKI42qNbdo=}
+    dev: false
+
+  /estree-walker/2.0.2:
+    resolution: {integrity: sha1-UvAQF4wqTBF6d1fP6UKtt9LaTKw=}
+    dev: false
+
+  /magic-string/0.25.9:
+    resolution: {integrity: sha1-3n+fr5HvihyR0CwuUxTIJ3283Rw=}
+    dependencies:
+      sourcemap-codec: 1.4.8
+    dev: false
+
+  /nanoid/3.3.4:
+    resolution: {integrity: sha1-cwtn480J4t6s8DwCfIHJ2dvF6Ks=}
+    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+    dev: false
+
+  /picocolors/1.0.0:
+    resolution: {integrity: sha1-y1vcdP8/UYkiNur3nWi8RFZKuBw=}
+    dev: false
+
+  /postcss/8.4.13:
+    resolution: {integrity: sha1-fIe8Jo559/hlJCNYId/fn3Pl1XU=}
+    engines: {node: ^10 || ^12 || >=14}
+    dependencies:
+      nanoid: 3.3.4
+      picocolors: 1.0.0
+      source-map-js: 1.0.2
+    dev: false
+
+  /source-map-js/1.0.2:
+    resolution: {integrity: sha1-rbw2HZxi3zgBJefxYfccgm8eSQw=}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
+  /source-map/0.6.1:
+    resolution: {integrity: sha1-dHIq8y6WFOnCh6jQu95IteLxomM=}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
+  /sourcemap-codec/1.4.8:
+    resolution: {integrity: sha1-6oBL2UhXQC5pktBaOO8a41qatMQ=}
+    dev: false
+
+  /typescript/4.6.4:
+    resolution: {integrity: sha1-yqeLvDpZ5qXFENNXA/agmHfORek=}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: false
+
+  /vue/3.2.33:
+    resolution: {integrity: sha1-eGfrFqMpOijE0ZCoN7xEeHi9ZMI=}
+    dependencies:
+      '@vue/compiler-dom': 3.2.33
+      '@vue/compiler-sfc': 3.2.33
+      '@vue/runtime-dom': 3.2.33
+      '@vue/server-renderer': 3.2.33_vue@3.2.33
+      '@vue/shared': 3.2.33
+    dev: false
