@@ -6,7 +6,6 @@ export class ReactiveEffect {
     deps: any = [] //? 类型问题
     constructor(public fn: Function, public scheduler: () => void) {}
 
-
     run() {
         if (!this.active) return this.fn()
         this.active = true; // ?

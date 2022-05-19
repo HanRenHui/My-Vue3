@@ -31,7 +31,7 @@ export function reactive(target: Record<string, any>) {
 }
 
 const map = new WeakMap()
-function track(target: Record<string, any>, key: string | symbol) {
+export function track(target: Record<string, any>, key: string | symbol) {
     let depMap = map.get(target)
     if (!depMap) {
         map.set(target, depMap = new Map())
@@ -50,7 +50,7 @@ function track(target: Record<string, any>, key: string | symbol) {
 }
 
 
-function trigger(target: Record<string, any>, key: string | symbol) {
+export function trigger(target: Record<string, any>, key: string | symbol) {
     const depMap = map.get(target)
     if (!depMap) return
     const deps = depMap.get(key)

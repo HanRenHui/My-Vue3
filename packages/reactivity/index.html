@@ -10,7 +10,23 @@
     <div id="app"></div>
     <script src="./dist//reactivity.global.js"></script>
     <script>
-        const { effect, reactive } = VueReactivity
+        const { computed, effect, reactive } = VueReactivity
+        const p = reactive({
+            first: 'h',
+            second: 'rh'
+        })
+        const myName = computed(() => {
+            return p.first + p.second
+        })
+
+
+        effect(() => {
+            app.innerText = myName.value
+        })
+
+        setTimeout(() => {
+            p.first = '1'
+        }, 2000)
     </script>
 </body>
 </html>

@@ -22,8 +22,11 @@ var VueReactivity = (() => {
   __export(src_exports, {
     ReactiveEffect: () => ReactiveEffect,
     activeEffect: () => activeEffect,
+    computed: () => computed,
     effect: () => effect,
-    reactive: () => reactive
+    reactive: () => reactive,
+    track: () => track,
+    trigger: () => trigger
   });
 
   // packages/reactivity/src/effect.ts
@@ -120,6 +123,41 @@ var VueReactivity = (() => {
         dep.run();
       }
     });
+  }
+
+  // packages/reactivity/src/computed.ts
+  var ComputedRefTmpl = class {
+    constructor(getter) {
+      this.getter = getter;
+      this._dirty = true;
+      this._v_isRef = true;
+      this.deps = /* @__PURE__ */ new Set();
+      this.effect = new ReactiveEffect(getter, () => {
+        this._dirty = true;
+        new Set(this.deps).forEach((dep) => {
+          if (dep.scheduler) {
+            dep.scheduler();
+          } else {
+            dep.run();
+          }
+        });
+      });
+    }
+    get value() {
+      if (this._dirty) {
+        this._value = this.effect.run();
+        this._dirty = false;
+      }
+      const shouldTrack = !this.deps.has(activeEffect);
+      if (shouldTrack) {
+        this.deps.add(activeEffect);
+        activeEffect.deps.push(this.deps);
+      }
+      return this._value;
+    }
+  };
+  function computed(getter) {
+    return new ComputedRefTmpl(getter);
   }
   return __toCommonJS(src_exports);
 })();
