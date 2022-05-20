@@ -26,7 +26,8 @@ var VueReactivity = (() => {
     effect: () => effect,
     reactive: () => reactive,
     track: () => track,
-    trigger: () => trigger
+    trigger: () => trigger,
+    watch: () => watch
   });
 
   // packages/reactivity/src/effect.ts
@@ -42,7 +43,6 @@ var VueReactivity = (() => {
     run() {
       if (!this.active)
         return this.fn();
-      this.active = true;
       this.parent = activeEffect;
       activeEffect = this;
       cleanupEffect(this);
@@ -158,6 +158,37 @@ var VueReactivity = (() => {
   };
   function computed(getter) {
     return new ComputedRefTmpl(getter);
+  }
+
+  // packages/reactivity/src/watch.ts
+  function traverse(obj) {
+    if (typeof obj !== "object")
+      return obj;
+    for (let k in obj) {
+      traverse(obj[k]);
+    }
+    return obj;
+  }
+  function watch(source, cb) {
+    let getter = null;
+    if (typeof source !== "function") {
+      getter = () => traverse(source);
+    } else {
+      getter = source;
+    }
+    let clean;
+    const onCleanup = (fn) => {
+      clean = fn;
+    };
+    let oldValue;
+    const cbWrap = () => {
+      const newValue = effect2.run();
+      clean && clean();
+      cb(newValue, oldValue, onCleanup);
+      oldValue = newValue;
+    };
+    const effect2 = new ReactiveEffect(getter, cbWrap);
+    oldValue = effect2.run();
   }
   return __toCommonJS(src_exports);
 })();

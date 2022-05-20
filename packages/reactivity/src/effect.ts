@@ -8,9 +8,9 @@ export class ReactiveEffect {
 
     run() {
         if (!this.active) return this.fn()
-        this.active = true; // ?
         this.parent = activeEffect
         activeEffect = this
+
         // 分之切换
         cleanupEffect(this)
         const v = this.fn()

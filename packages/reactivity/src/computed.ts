@@ -1,5 +1,4 @@
 import { activeEffect, ReactiveEffect } from "./effect"
-import { track, trigger } from './reactive'
 
 class ComputedRefTmpl {
     private _value: any

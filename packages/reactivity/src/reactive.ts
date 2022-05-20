@@ -1,4 +1,4 @@
-import { activeEffect, ReactiveEffect } from "./effect";
+import { activeEffect } from "./effect";
 
 const cache = new WeakMap()
 export function reactive(target: Record<string, any>) {
@@ -41,7 +41,6 @@ export function track(target: Record<string, any>, key: string | symbol) {
     if (!deps) {
         depMap.set(key, deps = new Set())
     }
-
     if (!deps.has(activeEffect)) {
         deps.add(activeEffect)
     }

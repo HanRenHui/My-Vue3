@@ -10,23 +10,31 @@
     <div id="app"></div>
     <script src="./dist//reactivity.global.js"></script>
     <script>
-        const { computed, effect, reactive } = VueReactivity
+        const { computed, effect, reactive, watch } = VueReactivity
         const p = reactive({
             first: 'h',
             second: 'rh'
         })
-        const myName = computed(() => {
-            return p.first + p.second
-        })
+        // const myName = computed(() => {
+        //     return p.first + p.second
+        // })
 
 
-        effect(() => {
-            app.innerText = myName.value
+        // effect(() => {
+        //     app.innerText = myName.value
+        // })
+
+        // setTimeout(() => {
+        //     p.first = '1'
+        // }, 2000)
+
+        watch(p, (newv,oldv) => {
+            console.log('动了动了', newv, oldv)
         })
 
         setTimeout(() => {
-            p.first = '1'
-        }, 2000)
+            p.first = 'hh'
+        }, 1500)
     </script>
 </body>
 </html>
