@@ -10,11 +10,8 @@
     <div id="app"></div>
     <script src="./dist//reactivity.global.js"></script>
     <script>
-        const { computed, effect, reactive, watch } = VueReactivity
-        const p = reactive({
-            first: 'h',
-            second: 'rh'
-        })
+        const { computed, effect, reactive, watch, ref } = VueReactivity
+        console.log('111', VueReactivity)
         // const myName = computed(() => {
         //     return p.first + p.second
         // })
@@ -28,12 +25,13 @@
         //     p.first = '1'
         // }, 2000)
 
-        watch(p, (newv,oldv) => {
-            console.log('动了动了', newv, oldv)
+        const name = ref('hrh')
+        effect(() => {
+            app.innerText = name.value
         })
 
         setTimeout(() => {
-            p.first = 'hh'
+            name.value = 'hrh2'
         }, 1500)
     </script>
 </body>
