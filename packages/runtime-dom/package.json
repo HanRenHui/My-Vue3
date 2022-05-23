@@ -1,0 +1,21 @@
+{
+    "name": "@vue3/runtime-dom",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "buildOptions": {
+      "name": "VueRuntimedom",
+      "formats": [
+        "global",
+        "cjs",
+        "esm-bundler"
+      ]
+  
+    },
+    "license": "ISC"
+  }
+  

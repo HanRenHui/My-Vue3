@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node scripts/dev.js runtime-dom -f global"
   },
   "repository": {
     "type": "git",
@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/HanRenHui/My-Vue3#readme",
   "dependencies": {
+    "esbuild": "^0.14.39",
+    "minimist": "^1.2.6",
     "typescript": "^4.6.4",
     "vue": "^3.2.33"
   }
