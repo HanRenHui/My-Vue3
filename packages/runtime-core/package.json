@@ -1,5 +1,5 @@
 {
-    "name": "@vue3/runtime-dom",
+    "name": "@vue3/runtime-core",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
@@ -8,12 +8,11 @@
     },
     "keywords": [],
     "buildOptions": {
-      "name": "VueRuntimedom",
       "formats": [
         "global",
-        "cjs",
-        "esm-bundler"
+        "cjs"
       ]
+  
     },
     "license": "ISC"
   }

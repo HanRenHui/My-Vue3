@@ -13,11 +13,11 @@ export default function patchEvent(el, eventName, callback) {
     if (exsit) {
         exsit.value = callback
         if (!callback) {
-            window.removeEventListener(event, exsit)
+            el.removeEventListener(event, exsit)
             _store[eventName] = undefined
         }
     } else {
         const invoker = _store[eventName] = createInvoker(callback)
-        window.addEventListener(event, invoker)
+        el.addEventListener(event, invoker)
     }
 }

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="./runtime-dom.global.js"></script>
+    <script>
+        const { render, h, Text } = window.VueRuntimedom
+        render(h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
+            h('li',{key: 'a'}, ['a']),
+            h('li',{key: 'b'}, ['b']),
+            h('li',{key: 'c'}, ['c']),
+            h('li',{key: 'c'}, ['d']),
+            h('li',{key: 'c'}, ['e']),
+            h('li',{key: 'c'}, ['f']),
+            h('li',{key: 'c'}, ['g']),
+        ]), app)
+
+        setTimeout(() => {
+            render(h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
+                h('li',{key: 'a'}, ['a']),
+                h('li',{key: 'b'}, ['b']),
+                h('li',{key: 'e'}, ['e']),
+                h('li',{key: 'c'}, ['c']),
+                h('li',{key: 'c'}, ['d']),
+                h('li',{key: 'c'}, ['h']),
+                h('li',{key: 'c'}, ['c']),
+            ]), app)
+        }, 1000)
+
+        // render(h(Text, null, '1333'), app)
+    </script>
+</body>
+</html>
