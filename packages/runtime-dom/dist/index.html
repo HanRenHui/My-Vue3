@@ -11,25 +11,29 @@
     <script src="./runtime-dom.global.js"></script>
     <script>
         const { render, h, Text } = window.VueRuntimedom
-        render(h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
-            h('li',{key: 'a'}, ['a']),
-            h('li',{key: 'b'}, ['b']),
-            h('li',{key: 'c'}, ['c']),
-            h('li',{key: 'c'}, ['d']),
-            h('li',{key: 'c'}, ['e']),
-            h('li',{key: 'c'}, ['f']),
-            h('li',{key: 'c'}, ['g']),
-        ]), app)
+        const App = h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
+            h('li',{key: 'a'}, 'a'),
+            h('li',{key: 'b'}, 'b'),
+            h('li',{key: 'c'}, 'c'),
+            h('li',{key: 'd'}, 'd'),
+            h('li',{key: 'e'}, 'e'),
+            h('li',{key: 'q'}, 'q'),
+            h('li',{key: 'f'}, 'f'),
+            h('li',{key: 'g'}, 'g'),
+        ])
+        render(App, app)
+
 
         setTimeout(() => {
             render(h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
-                h('li',{key: 'a'}, ['a']),
-                h('li',{key: 'b'}, ['b']),
-                h('li',{key: 'e'}, ['e']),
-                h('li',{key: 'c'}, ['c']),
-                h('li',{key: 'c'}, ['d']),
-                h('li',{key: 'c'}, ['h']),
-                h('li',{key: 'c'}, ['c']),
+                h('li',{key: 'a'}, 'a'),
+                h('li',{key: 'b'}, 'b'),
+                h('li',{key: 'd'}, 'd'),
+                h('li',{key: 'c'}, 'c'),
+                h('li',{key: 'e'}, 'e'),
+                h('li',{key: 'h'}, 'h'),
+                h('li',{key: 'f'}, 'f'),
+                h('li',{key: 'g'}, 'g'),
             ]), app)
         }, 1000)
 

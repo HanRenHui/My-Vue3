@@ -173,10 +173,7 @@ var VueRuntimedom = (() => {
     } = renderOptions;
     const mountChildren = (container, children) => {
       children.forEach((child, i) => {
-        if (typeof child === "string") {
-          children[i] = createVNode(Text, {}, child);
-        }
-        patch(null, children[i], container);
+        patch(null, child, container);
       });
     };
     const mountElement = (vnode, container, anchor = null) => {
@@ -243,6 +240,34 @@ var VueRuntimedom = (() => {
       if (i > e2) {
         while (i <= e1) {
           unmount(c1[i++]);
+        }
+      }
+      const newKeyMap = {};
+      const s1 = i;
+      const s2 = i;
+      for (let i2 = s2; i2 <= e2; i2++) {
+        const cur = c2[i2];
+        newKeyMap[cur.key] = i2;
+      }
+      const patchedMap = {};
+      for (let i2 = s1; i2 <= e1; i2++) {
+        const newIndex = newKeyMap[c1[i2].key];
+        if (newIndex === void 0) {
+          unmount(c1[i2]);
+        } else {
+          patchedMap[newIndex] = i2 + 1;
+          const anchor = newIndex + 1 < c2.length ? c2[newIndex + 1] : null;
+          patch(c1[i2], c2[newIndex], el, anchor);
+        }
+      }
+      for (let i2 = e2; i2 >= s2; i2--) {
+        const current = c2[i2];
+        const oldIndex = patchedMap[i2];
+        const anchor = i2 + 1 < c2.length ? c2[i2 + 1].el : null;
+        if (oldIndex) {
+          hostInsert(current.el, el, anchor);
+        } else {
+          patch(null, c2[i2], el, anchor);
         }
       }
     };
@@ -327,8 +352,6 @@ var VueRuntimedom = (() => {
 
   // packages/runtime-core/src/h.ts
   function h(type, props, children) {
-    if (!Array.isArray(children))
-      children = [children];
     return createVNode(type, props, children);
   }
 

@@ -21,10 +21,7 @@ export function createRenderer(renderOptions) {
 
     const mountChildren = (container, children) => {
         children.forEach((child, i) => {
-            if (typeof child === 'string') {
-                children[i] = createVNode(Text, {}, child)
-            }
-            patch(null, children[i], container)
+            patch(null, child, container)
         })
     }
 
@@ -63,7 +60,6 @@ export function createRenderer(renderOptions) {
     const patchKeyedChildren = (el, n1, n2) => {
         const c1 = n1.children
         const c2 = n2.children
-        
         let i = 0 
         let e1 = c1.length - 1
         let e2 = c2.length - 1
@@ -108,6 +104,41 @@ export function createRenderer(renderOptions) {
                 unmount(c1[i++])
             }
         }
+
+        // 优化完毕 开始乱序比对
+        // 新的key值和下标的映射表
+        const newKeyMap = {}
+        const s1 = i
+        const s2 = i
+        for (let i = s2; i <= e2; i++) {
+            const cur = c2[i]
+            newKeyMap[cur.key] = i
+        }
+        // 遍历老children 标记需要移动的， 以及删除多余的
+        const patchedMap = {}
+        for (let i = s1; i <= e1; i++) {
+            const newIndex = newKeyMap[c1[i].key]
+            if (newIndex === undefined) {
+                // 在新children 没找到 则要删除
+                unmount(c1[i])
+            } else {
+                patchedMap[newIndex] = i+1
+                const anchor = newIndex + 1 < c2.length ? c2[newIndex+1] : null
+                patch(c1[i], c2[newIndex], el, anchor)
+            }
+        }
+
+        // 该移动的移动 该新增的新增
+        for (let i = e2; i >= s2; i--) {
+            const current = c2[i]
+            const oldIndex = patchedMap[i]
+            const anchor = i+1 < c2.length ? c2[i+1].el : null
+            if (oldIndex) {
+                hostInsert(current.el, el, anchor)
+            } else {
+                patch(null, c2[i], el, anchor)
+            }
+        }
     }
 
     const patchChildren = (el, n1, n2) => {
@@ -145,7 +176,6 @@ export function createRenderer(renderOptions) {
                 // hostSetElementText(el, null)
             }
         }
-
     }
 
     const patchElement = ( n1, n2) => {
