@@ -1,5 +1,6 @@
+import { reactive, ReactiveEffect } from "@vue3/reactivity"
 import { ShapeFlags } from "@vue3/shared"
-import { onUnmounted } from "vue"
+import { queueJob } from './queue'
 import { createVNode, isSameVnode } from "./vnode"
 
 export const Text = Symbol.for('Text')
@@ -266,6 +267,44 @@ export function createRenderer(renderOptions) {
         }
     }
 
+    const mountComponent = (vnode, container, anchor) => {
+        const { data, render } = vnode.type
+        const state = reactive(data)
+        const instance = {
+            state,
+            render,
+            is_mounted: false,
+            vnode,
+            subTree: null,
+            update: null
+        }
+
+        const updateComponentFn = () => {
+            if (!instance.is_mounted) {
+                // 挂载
+                instance.subTree = instance.render.call(instance.state)
+                patch(null, instance.subTree, container, anchor)
+                instance.is_mounted = true
+            } else {
+                // 更新
+                const subTree = instance.render.call(instance.state)
+                patch(instance.subTree, subTree, container, anchor)
+                instance.subTree = subTree
+            }
+        }
+
+        const effect = new ReactiveEffect(updateComponentFn, () => queueJob(updateComponentFn))
+        instance.update = effect.run.bind(effect)
+        instance.update()
+    }
+
+
+    const processComponent = (n1, n2, container, anchor) => {
+        if (!n1) {
+            mountComponent(n2, container, anchor)
+        }
+    }
+
     const patch = (n1, n2, container, anchor = null) => {
         if (n1 && !isSameVnode(n1, n2)) {
             unmount(n1)
@@ -278,8 +317,12 @@ export function createRenderer(renderOptions) {
             case Fragment:
                 processFragment(n1, n2, container)
                 break;
-            default :
-                processElement(n1, n2, container, anchor)
+            default:
+                if (n2.ShapeFlag & ShapeFlags.ELEMENT) {
+                    processElement(n1, n2, container, anchor)
+                } else if (n2.ShapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+                    processComponent(n1, n2, container, anchor)
+                }
                 break;
         }
     }

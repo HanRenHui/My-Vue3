@@ -23,10 +23,10 @@
         // ])
         // render(App, app)
 
-        render(h(Fragment, {}, [
-            h('p', {style: {color: 'red'}}, '123' ),
-            h('div', {}, [h('span', {}, 'hahah')]),
-        ]), app)
+        // render(h(Fragment, {}, [
+        //     h('p', {style: {color: 'red'}}, '123' ),
+        //     h('div', {}, [h('span', {}, 'hahah')]),
+        // ]), app)
 
 
         // setTimeout(() => {
@@ -51,6 +51,19 @@
         // 2 5 6 7 11 15
 
         // 2 3 1 5 6  7 9 84 
+
+
+        const App = {
+            data: {
+                age: 18,
+                name: 'h'
+            },
+            render(){
+                return h('p', {}, `年龄： ${this.age}, name: ${this.name}`)
+            }
+        }
+
+        render(h(App), app)
     </script>
 </body>
 </html>

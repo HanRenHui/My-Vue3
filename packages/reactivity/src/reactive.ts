@@ -41,7 +41,7 @@ export function track(target: Record<string, any>, key: string | symbol) {
     if (!deps) {
         depMap.set(key, deps = new Set())
     }
-    if (!deps.has(activeEffect)) {
+    if (!deps.has(activeEffect) && activeEffect) {
         deps.add(activeEffect)
     }
     activeEffect && activeEffect.deps.push(deps)

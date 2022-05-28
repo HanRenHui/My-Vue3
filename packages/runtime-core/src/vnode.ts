@@ -1,6 +1,6 @@
 import { ShapeFlags } from '@vue3/shared'
 
-export function createVNode(type, props, children) {
+export function createVNode(type, props: any = {}, children) {
     let ShapeFlag = 0
     let vnode = {
         __v_isVnode: true,
@@ -8,11 +8,13 @@ export function createVNode(type, props, children) {
         props,
         ShapeFlag,
         children,
-        key: props?.key
+        key: props.key
     }
     delete props.key
     if (typeof type === 'string') {
         vnode.ShapeFlag = ShapeFlags.ELEMENT
+    } else if (typeof type === 'object') {
+        vnode.ShapeFlag = ShapeFlags.STATEFUL_COMPONENT
     }
 
     if (children) {
@@ -22,10 +24,8 @@ export function createVNode(type, props, children) {
         } else {
             type = ShapeFlags.TEXT_CHILDREN
         }
-
         vnode.ShapeFlag |= type
     }
-
     return vnode
 }
 

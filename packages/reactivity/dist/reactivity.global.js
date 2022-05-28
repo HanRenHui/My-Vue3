@@ -104,7 +104,7 @@ var VueReactivity = (() => {
     if (!deps) {
       depMap.set(key, deps = /* @__PURE__ */ new Set());
     }
-    if (!deps.has(activeEffect)) {
+    if (!deps.has(activeEffect) && activeEffect) {
       deps.add(activeEffect);
     }
     activeEffect && activeEffect.deps.push(deps);

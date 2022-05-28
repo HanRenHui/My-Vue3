@@ -4,7 +4,7 @@ export class ReactiveEffect {
     parent: ReactiveEffect | undefined = undefined
     active = true
     deps: any = [] //? 类型问题
-    constructor(public fn: Function, public scheduler: () => void) {}
+    constructor(public fn: Function, public scheduler?: () => void) {}
 
     run() {
         if (!this.active) return this.fn()
