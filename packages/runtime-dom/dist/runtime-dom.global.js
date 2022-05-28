@@ -20,6 +20,7 @@ var VueRuntimedom = (() => {
   // packages/runtime-dom/src/index.ts
   var src_exports = {};
   __export(src_exports, {
+    Fragment: () => Fragment,
     Text: () => Text,
     createRenderer: () => createRenderer,
     h: () => h,
@@ -158,6 +159,7 @@ var VueRuntimedom = (() => {
 
   // packages/runtime-core/src/renderer.ts
   var Text = Symbol.for("Text");
+  var Fragment = Symbol.for("Fragment");
   function createRenderer(renderOptions) {
     let {
       insert: hostInsert,
@@ -367,6 +369,13 @@ var VueRuntimedom = (() => {
         hostSetText(el, n2.children);
       }
     };
+    const processFragment = (n1, n2, container) => {
+      if (!n1) {
+        mountChildren(container, n2.children);
+      } else {
+        patchChildren(n1, n2, container);
+      }
+    };
     const patch = (n1, n2, container, anchor = null) => {
       if (n1 && !isSameVnode(n1, n2)) {
         unmount(n1);
@@ -375,6 +384,9 @@ var VueRuntimedom = (() => {
       switch (n2.type) {
         case Text:
           processText(n1, n2, container);
+          break;
+        case Fragment:
+          processFragment(n1, n2, container);
           break;
         default:
           processElement(n1, n2, container, anchor);

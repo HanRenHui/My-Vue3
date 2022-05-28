@@ -10,32 +10,37 @@
     <div id="app"></div>
     <script src="./runtime-dom.global.js"></script>
     <script>
-        const { render, h, Text } = window.VueRuntimedom
-        const App = h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
-            h('li',{key: 'a'}, 'a'),
-            h('li',{key: 'b'}, 'b'),
-            h('li',{key: 'c'}, 'c'),
-            h('li',{key: 'd'}, 'd'),
-            h('li',{key: 'e'}, 'e'),
-            h('li',{key: 'q'}, 'q'),
-            h('li',{key: 'f'}, 'f'),
-            h('li',{key: 'g'}, 'g'),
-        ])
-        render(App, app)
+        const { render, h, Text, Fragment } = window.VueRuntimedom
+        // const App = h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
+        //     h('li',{key: 'a'}, 'a'),
+        //     h('li',{key: 'b'}, 'b'),
+        //     h('li',{key: 'c'}, 'c'),
+        //     h('li',{key: 'd'}, 'd'),
+        //     h('li',{key: 'e'}, 'e'),
+        //     h('li',{key: 'q'}, 'q'),
+        //     h('li',{key: 'f'}, 'f'),
+        //     h('li',{key: 'g'}, 'g'),
+        // ])
+        // render(App, app)
+
+        render(h(Fragment, {}, [
+            h('p', {style: {color: 'red'}}, '123' ),
+            h('div', {}, [h('span', {}, 'hahah')]),
+        ]), app)
 
 
-        setTimeout(() => {
-            render(h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
-                h('li',{key: 'a'}, 'a'),
-                h('li',{key: 'b'}, 'b'),
-                h('li',{key: 'd'}, 'd'),
-                h('li',{key: 'c'}, 'c'),
-                h('li',{key: 'e'}, 'e'),
-                h('li',{key: 'h'}, 'h'),
-                h('li',{key: 'f'}, 'f'),
-                h('li',{key: 'g'}, 'g'),
-            ]), app)
-        }, 1000)
+        // setTimeout(() => {
+        //     render(h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
+        //         h('li',{key: 'a'}, 'a'),
+        //         h('li',{key: 'b'}, 'b'),
+        //         h('li',{key: 'd'}, 'd'),
+        //         h('li',{key: 'c'}, 'c'),
+        //         h('li',{key: 'e'}, 'e'),
+        //         h('li',{key: 'h'}, 'h'),
+        //         h('li',{key: 'f'}, 'f'),
+        //         h('li',{key: 'g'}, 'g'),
+        //     ]), app)
+        // }, 1000)
 
         // 1 0 2
 

@@ -3,6 +3,7 @@ import { onUnmounted } from "vue"
 import { createVNode, isSameVnode } from "./vnode"
 
 export const Text = Symbol.for('Text')
+export const Fragment = Symbol.for('Fragment')
 
 export function createRenderer(renderOptions) {
     let {
@@ -257,6 +258,14 @@ export function createRenderer(renderOptions) {
         }
     }
 
+    const processFragment  = (n1, n2, container) => {
+        if (!n1) {
+            mountChildren(container, n2.children)
+        } else {
+            patchChildren(n1, n2, container)
+        }
+    }
+
     const patch = (n1, n2, container, anchor = null) => {
         if (n1 && !isSameVnode(n1, n2)) {
             unmount(n1)
@@ -265,6 +274,9 @@ export function createRenderer(renderOptions) {
         switch(n2.type) {
             case Text:
                 processText(n1, n2, container)
+                break;
+            case Fragment:
+                processFragment(n1, n2, container)
                 break;
             default :
                 processElement(n1, n2, container, anchor)
