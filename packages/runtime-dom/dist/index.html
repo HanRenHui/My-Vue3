@@ -58,12 +58,16 @@
                 age: 18,
                 name: 'h'
             },
+            props: {
+                a: String,
+                b: String
+            },
             render(){
-                return h('p', {}, `年龄： ${this.age}, name: ${this.name}`)
+                return h('p', {}, `年龄： ${this.age}, name: ${this.name}, ${this.a + this.b + this.$attrs.c}`)
             }
         }
 
-        render(h(App), app)
+        render(h(App, { a: 'a', b: 'b', c: 'c'}), app)
     </script>
 </body>
 </html>

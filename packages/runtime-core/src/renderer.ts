@@ -267,8 +267,27 @@ export function createRenderer(renderOptions) {
         }
     }
 
+    const initProps = (instance, rawProps) => {
+        const props = {}
+        const attrs = {}
+        for (let key in rawProps) {
+            const v = rawProps[key]
+            if (key in instance.propOptions) {
+                props[key] = v
+            } else {
+                attrs[key] = v
+            }
+        }
+
+        instance.props = reactive(props)
+        instance.attrs = attrs
+    }
+    const publicProperty = {
+        $attrs: i => i.attrs
+    }
+
     const mountComponent = (vnode, container, anchor) => {
-        const { data, render } = vnode.type
+        const { data, render, props: propOptions } = vnode.type
         const state = reactive(data)
         const instance = {
             state,
@@ -276,18 +295,46 @@ export function createRenderer(renderOptions) {
             is_mounted: false,
             vnode,
             subTree: null,
-            update: null
+            update: null,
+            propOptions,
+            attrs: {},
+            props: {},
+            proxy: null
         }
+
+        initProps(instance, vnode.props)
+
+        instance.proxy = new Proxy(instance, {
+            get(target, key) {
+                if (key in target.state) {
+                    return target.state[key]
+                } else if (key in target.props) {
+                    return target.props[key]
+                } else {
+                    const getter = publicProperty[key]
+                    if (getter) {
+                        return getter(target)
+                    }
+                }
+            },
+            set(target, key, value) {
+                if (key in target.state) {
+                    target[state] = value;
+                    return true
+                }
+                return false
+            }
+        })
 
         const updateComponentFn = () => {
             if (!instance.is_mounted) {
                 // 挂载
-                instance.subTree = instance.render.call(instance.state)
+                instance.subTree = instance.render.call(instance.proxy)
                 patch(null, instance.subTree, container, anchor)
                 instance.is_mounted = true
             } else {
                 // 更新
-                const subTree = instance.render.call(instance.state)
+                const subTree = instance.render.call(instance.proxy)
                 patch(instance.subTree, subTree, container, anchor)
                 instance.subTree = subTree
             }

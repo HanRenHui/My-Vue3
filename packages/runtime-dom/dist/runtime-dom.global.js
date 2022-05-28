@@ -220,18 +220,16 @@ var VueRuntimedom = (() => {
   var flushing = false;
   var p = Promise.resolve();
   function queueJob(job) {
-    if (queue.includes(job)) {
-      return;
-    } else {
+    if (!queue.includes(job)) {
       queue.push(job);
     }
     if (!flushing) {
       flushing = true;
       p.then(() => {
         let copy = queue.slice(0);
-        copy.forEach((c) => c());
         queue.length = 0;
-        copy = [];
+        copy.forEach((c) => c());
+        copy.length = 0;
         flushing = false;
       });
     }
@@ -488,8 +486,25 @@ var VueRuntimedom = (() => {
         patchChildren(n1, n2, container);
       }
     };
+    const initProps = (instance, rawProps) => {
+      const props = {};
+      const attrs = {};
+      for (let key in rawProps) {
+        const v = rawProps[key];
+        if (key in instance.propOptions) {
+          props[key] = v;
+        } else {
+          attrs[key] = v;
+        }
+      }
+      instance.props = reactive(props);
+      instance.attrs = attrs;
+    };
+    const publicProperty = {
+      $attrs: (i) => i.attrs
+    };
     const mountComponent = (vnode, container, anchor) => {
-      const { data, render: render3 } = vnode.type;
+      const { data, render: render3, props: propOptions } = vnode.type;
       const state = reactive(data);
       const instance = {
         state,
@@ -497,15 +512,41 @@ var VueRuntimedom = (() => {
         is_mounted: false,
         vnode,
         subTree: null,
-        update: null
+        update: null,
+        propOptions,
+        attrs: {},
+        props: {},
+        proxy: null
       };
+      initProps(instance, vnode.props);
+      instance.proxy = new Proxy(instance, {
+        get(target, key) {
+          if (key in target.state) {
+            return target.state[key];
+          } else if (key in target.props) {
+            return target.props[key];
+          } else {
+            const getter = publicProperty[key];
+            if (getter) {
+              return getter(target);
+            }
+          }
+        },
+        set(target, key, value) {
+          if (key in target.state) {
+            target[state] = value;
+            return true;
+          }
+          return false;
+        }
+      });
       const updateComponentFn = () => {
         if (!instance.is_mounted) {
-          instance.subTree = instance.render.call(instance.state);
+          instance.subTree = instance.render.call(instance.proxy);
           patch(null, instance.subTree, container, anchor);
           instance.is_mounted = true;
         } else {
-          const subTree = instance.render.call(instance.state);
+          const subTree = instance.render.call(instance.proxy);
           patch(instance.subTree, subTree, container, anchor);
           instance.subTree = subTree;
         }
