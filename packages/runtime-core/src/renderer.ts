@@ -57,6 +57,51 @@ export function createRenderer(renderOptions) {
         })
     }
 
+    // 获取最长子增子序列的下标 [3, 4, 7， 9, 5]
+    function getSequce(arr) {
+        const rs = [0]
+        const prefix = new Array(arr.length).fill(undefined)
+        
+        for (let i = 1; i < arr.length; i++) {
+            if (arr[i] === 0) {
+                continue
+            }
+            let lastIndex = rs[rs.length-1]
+            const cur = arr[i]
+            if (cur > arr[lastIndex]) {
+                prefix[i] = lastIndex
+                rs.push(i)
+            } else {
+                let start = 0
+                let end = rs.length-1
+                let mid = Math.floor((end + start) / 2)       
+                while(start < end) {
+                    if (arr[rs[mid]] < cur) {
+                        start = mid + 1
+                    } else {
+                        end = mid
+                    }
+                    mid = Math.floor(( end + start ) / 2)  
+                }
+
+
+                if (arr[rs[start]] > cur) {
+                    prefix[i] = rs[start-1]
+                    rs[start] = i
+                }
+            }
+        }
+        let i = rs.length-1
+        let last = rs[i]
+        while(i) {
+            rs[i] = last
+            last = prefix[last]
+            i--
+        }
+        return rs;
+    }
+    
+
     const patchKeyedChildren = (el, n1, n2) => {
         const c1 = n1.children
         const c2 = n2.children
@@ -115,28 +160,39 @@ export function createRenderer(renderOptions) {
             newKeyMap[cur.key] = i
         }
         // 遍历老children 标记需要移动的， 以及删除多余的
-        const patchedMap = {}
+        const toBePatched = e2 - s2 + 1
+        // xin l
+        const patchedArr = new Array(toBePatched).fill(0)
         for (let i = s1; i <= e1; i++) {
             const newIndex = newKeyMap[c1[i].key]
             if (newIndex === undefined) {
                 // 在新children 没找到 则要删除
                 unmount(c1[i])
             } else {
-                patchedMap[newIndex] = i+1
+                // patchedMap[newIndex] = i+1
+                patchedArr[newIndex - s2] = i+1
                 const anchor = newIndex + 1 < c2.length ? c2[newIndex+1] : null
                 patch(c1[i], c2[newIndex], el, anchor)
             }
         }
+        const longestPatchedArr = getSequce(patchedArr)
+        let j = longestPatchedArr.length - 1
 
         // 该移动的移动 该新增的新增
-        for (let i = e2; i >= s2; i--) {
-            const current = c2[i]
-            const oldIndex = patchedMap[i]
-            const anchor = i+1 < c2.length ? c2[i+1].el : null
-            if (oldIndex) {
-                hostInsert(current.el, el, anchor)
+        for (let i = patchedArr.length-1; i >=0; i--) {
+            const index = i + s2
+            const current = c2[index]
+            const anchor = index + 1 < c2.length ? c2[index+1].el : null
+            if (patchedArr[i] === 0) {
+                patch(null, c2[index], el, anchor)
             } else {
-                patch(null, c2[i], el, anchor)
+                if (i !== longestPatchedArr[j]) {
+                    hostInsert(current.el, el, anchor)
+                } else {
+                    j --
+                    // 没动
+                    console.log('没动', current.key)
+                }
             }
         }
     }

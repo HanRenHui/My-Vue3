@@ -203,6 +203,45 @@ var VueRuntimedom = (() => {
         unmount(child);
       });
     };
+    function getSequce(arr) {
+      const rs = [0];
+      const prefix = new Array(arr.length).fill(void 0);
+      for (let i2 = 1; i2 < arr.length; i2++) {
+        if (arr[i2] === 0) {
+          continue;
+        }
+        let lastIndex = rs[rs.length - 1];
+        const cur = arr[i2];
+        if (cur > arr[lastIndex]) {
+          prefix[i2] = lastIndex;
+          rs.push(i2);
+        } else {
+          let start = 0;
+          let end = rs.length - 1;
+          let mid = Math.floor((end + start) / 2);
+          while (start < end) {
+            if (arr[rs[mid]] < cur) {
+              start = mid + 1;
+            } else {
+              end = mid;
+            }
+            mid = Math.floor((end + start) / 2);
+          }
+          if (arr[rs[start]] > cur) {
+            prefix[i2] = rs[start - 1];
+            rs[start] = i2;
+          }
+        }
+      }
+      let i = rs.length - 1;
+      let last = rs[i];
+      while (i) {
+        rs[i] = last;
+        last = prefix[last];
+        i--;
+      }
+      return rs;
+    }
     const patchKeyedChildren = (el, n1, n2) => {
       const c1 = n1.children;
       const c2 = n2.children;
@@ -249,25 +288,33 @@ var VueRuntimedom = (() => {
         const cur = c2[i2];
         newKeyMap[cur.key] = i2;
       }
-      const patchedMap = {};
+      const toBePatched = e2 - s2 + 1;
+      const patchedArr = new Array(toBePatched).fill(0);
       for (let i2 = s1; i2 <= e1; i2++) {
         const newIndex = newKeyMap[c1[i2].key];
         if (newIndex === void 0) {
           unmount(c1[i2]);
         } else {
-          patchedMap[newIndex] = i2 + 1;
+          patchedArr[newIndex - s2] = i2 + 1;
           const anchor = newIndex + 1 < c2.length ? c2[newIndex + 1] : null;
           patch(c1[i2], c2[newIndex], el, anchor);
         }
       }
-      for (let i2 = e2; i2 >= s2; i2--) {
-        const current = c2[i2];
-        const oldIndex = patchedMap[i2];
-        const anchor = i2 + 1 < c2.length ? c2[i2 + 1].el : null;
-        if (oldIndex) {
-          hostInsert(current.el, el, anchor);
+      const longestPatchedArr = getSequce(patchedArr);
+      let j = longestPatchedArr.length - 1;
+      for (let i2 = patchedArr.length - 1; i2 >= 0; i2--) {
+        const index = i2 + s2;
+        const current = c2[index];
+        const anchor = index + 1 < c2.length ? c2[index + 1].el : null;
+        if (patchedArr[i2] === 0) {
+          patch(null, c2[index], el, anchor);
         } else {
-          patch(null, c2[i2], el, anchor);
+          if (i2 !== longestPatchedArr[j]) {
+            hostInsert(current.el, el, anchor);
+          } else {
+            j--;
+            console.log("\u6CA1\u52A8", current.key);
+          }
         }
       }
     };
