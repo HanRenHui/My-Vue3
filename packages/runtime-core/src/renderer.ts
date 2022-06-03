@@ -1,5 +1,6 @@
 import { reactive, ReactiveEffect } from "@vue3/reactivity"
 import { ShapeFlags } from "@vue3/shared"
+import { createComponentInstance, hasPropChanged, setupComponent, updateProps } from "./component"
 import { queueJob } from './queue'
 import { createVNode, isSameVnode } from "./vnode"
 
@@ -263,69 +264,16 @@ export function createRenderer(renderOptions) {
         if (!n1) {
             mountChildren(container, n2.children)
         } else {
-            patchChildren(n1, n2, container)
+            patchChildren(container, n1, n2)
         }
     }
 
-    const initProps = (instance, rawProps) => {
-        const props = {}
-        const attrs = {}
-        for (let key in rawProps) {
-            const v = rawProps[key]
-            if (key in instance.propOptions) {
-                props[key] = v
-            } else {
-                attrs[key] = v
-            }
-        }
-
-        instance.props = reactive(props)
-        instance.attrs = attrs
-    }
-    const publicProperty = {
-        $attrs: i => i.attrs
+    const updateComponentPreRender = (instance, nextVNode) => {
+        instance.next = null;
+        updateProps(instance.props, nextVNode.props)
     }
 
-    const mountComponent = (vnode, container, anchor) => {
-        const { data, render, props: propOptions } = vnode.type
-        const state = reactive(data)
-        const instance = {
-            state,
-            render,
-            is_mounted: false,
-            vnode,
-            subTree: null,
-            update: null,
-            propOptions,
-            attrs: {},
-            props: {},
-            proxy: null
-        }
-
-        initProps(instance, vnode.props)
-
-        instance.proxy = new Proxy(instance, {
-            get(target, key) {
-                if (key in target.state) {
-                    return target.state[key]
-                } else if (key in target.props) {
-                    return target.props[key]
-                } else {
-                    const getter = publicProperty[key]
-                    if (getter) {
-                        return getter(target)
-                    }
-                }
-            },
-            set(target, key, value) {
-                if (key in target.state) {
-                    target[state] = value;
-                    return true
-                }
-                return false
-            }
-        })
-
+    const setupRenderEffect = (instance,container, anchor) => {
         const updateComponentFn = () => {
             if (!instance.is_mounted) {
                 // 挂载
@@ -333,6 +281,10 @@ export function createRenderer(renderOptions) {
                 patch(null, instance.subTree, container, anchor)
                 instance.is_mounted = true
             } else {
+                if (instance.next) {
+                    const next = instance.next
+                    updateComponentPreRender(instance, next)
+                }
                 // 更新
                 const subTree = instance.render.call(instance.proxy)
                 patch(instance.subTree, subTree, container, anchor)
@@ -345,10 +297,34 @@ export function createRenderer(renderOptions) {
         instance.update()
     }
 
+    const mountComponent = (vnode, container, anchor) => {
+        const instance = vnode.component = createComponentInstance(vnode)
+
+        // 设置组件实例属性
+        setupComponent(instance)
+        
+        setupRenderEffect(instance,container, anchor)
+    }
+
+    const shouldUpdateComponent = (n1, n2) => {
+        return hasPropChanged(n1.props, n2.props)
+    }
+
+    const updateComponent = (n1, n2) => {
+        // 继承组件实例
+        const instance = n2.component = n1.component
+        if (shouldUpdateComponent(n1, n2)) {
+            instance.next = n2
+            instance.update()
+        }
+    }
+
 
     const processComponent = (n1, n2, container, anchor) => {
         if (!n1) {
             mountComponent(n2, container, anchor)
+        } else {
+            updateComponent(n1, n2)
         }
     }
 

@@ -53,21 +53,49 @@
         // 2 3 1 5 6  7 9 84 
 
 
-        const App = {
-            data: {
-                age: 18,
-                name: 'h'
-            },
+        // const App = {
+        //     data: {
+        //         age: 18,
+        //         name: 'h'
+        //     },
+        //     props: {
+        //         a: String,
+        //         b: String
+        //     },
+        //     render(){
+        //         return h('p', {}, `年龄： ${this.age}, name: ${this.name}, ${this.a + this.b + this.$attrs.c}`)
+        //     }
+        // }
+
+        // render(h(App, { a: 'a', b: 'b', c: 'c'}), app)
+
+        const Test = {
             props: {
-                a: String,
-                b: String
+                flag: Boolean
             },
-            render(){
-                return h('p', {}, `年龄： ${this.age}, name: ${this.name}, ${this.a + this.b + this.$attrs.c}`)
+            render() {
+                return h('span',{}, `${this.flag ? 'true': 'false'}`)
             }
         }
 
-        render(h(App, { a: 'a', b: 'b', c: 'c'}), app)
+        const App = {
+            data() {
+                return {
+                    flag: true
+                }
+            },
+            render() {
+                return h(
+                    Fragment,
+                    {},
+                    [
+                        h('button', { onClick: () => {console.log(111); this.flag = !this.flag}}, 'click me'),
+                        h(Test, {flag: this.flag})
+                    ]
+                )
+            }
+        }
+        render(h(App), app)
     </script>
 </body>
 </html>

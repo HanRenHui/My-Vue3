@@ -10,10 +10,10 @@ export function queueJob(job) {
         flushing = true
         p.then(() => {
             let copy = queue.slice(0)
+            flushing = false
             queue.length = 0
             copy.forEach(c => c())
             copy.length = 0
-            flushing = false
         })
     }
 
