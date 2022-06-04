@@ -40,3 +40,22 @@ class RefImpl {
 export function ref(target: any) {
     return new RefImpl(target)
 }
+
+
+export function proxyRefs(object){
+    return new Proxy(object,{
+        get(target,key,recevier){
+           let r = Reflect.get(target,key,recevier);
+           return r.__v_isRef ? r.value :r
+        },
+        set(target,key,value,recevier){
+            let oldValue =  target[key];
+            if(oldValue.__v_isRef){
+                oldValue.value = value;
+                return true;
+            }else{
+                return Reflect.set(target,key,value,recevier);
+            }
+        }
+    })
+}

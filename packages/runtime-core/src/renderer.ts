@@ -276,7 +276,7 @@ export function createRenderer(renderOptions) {
     const setupRenderEffect = (instance,container, anchor) => {
         const updateComponentFn = () => {
             if (!instance.is_mounted) {
-                // 挂载
+                // mount 挂载
                 instance.subTree = instance.render.call(instance.proxy)
                 patch(null, instance.subTree, container, anchor)
                 instance.is_mounted = true
@@ -289,6 +289,7 @@ export function createRenderer(renderOptions) {
                 const subTree = instance.render.call(instance.proxy)
                 patch(instance.subTree, subTree, container, anchor)
                 instance.subTree = subTree
+                
             }
         }
 
