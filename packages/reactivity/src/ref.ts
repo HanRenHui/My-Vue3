@@ -14,15 +14,17 @@ class RefImpl {
     }
 
     get value() {
-        const shouldTrack = !this.deps.has(activeEffect)
-        if (shouldTrack) {
-            this.deps.add(activeEffect)
-            activeEffect.deps.push(this.deps)
+        if (activeEffect) {
+            const shouldTrack = !this.deps.has(activeEffect)
+            if (shouldTrack) {
+                this.deps.add(activeEffect)
+                activeEffect.deps.push(this.deps)
+            }
         }
         return this._value
     }
 
-    set(newValue: any) {
+    set value(newValue: any) {
         if (newValue === this.rawValue) return
         this.rawValue = newValue
         this._value = toReactive(newValue)
@@ -49,7 +51,7 @@ export function proxyRefs(object){
            return r.__v_isRef ? r.value :r
         },
         set(target,key,value,recevier){
-            let oldValue =  target[key];
+            let oldValue = target[key];
             if(oldValue.__v_isRef){
                 oldValue.value = value;
                 return true;

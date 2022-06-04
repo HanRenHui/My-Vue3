@@ -10,7 +10,7 @@
     <div id="app"></div>
     <script src="./runtime-dom.global.js"></script>
     <script>
-        const { render, h, Text, Fragment } = window.VueRuntimedom
+        const { render, h, Text, Fragment, ref } = window.VueRuntimedom
         // const App = h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
         //     h('li',{key: 'a'}, 'a'),
         //     h('li',{key: 'b'}, 'b'),
@@ -78,24 +78,38 @@
             }
         }
 
+        // const App = {
+        //     setup() {
+        //         const flag = ref(true)
+
+        //         return {
+        //             flag
+        //         }
+        //     },
+        //     render() {
+        //         return h(
+        //             Fragment,
+        //             {},
+        //             [
+        //                 h('button', { onClick: () => {console.log(111); this.flag = !this.flag}}, 'click me'),
+        //                 h(Test, {flag: this.flag})
+        //             ]
+        //         )
+        //     }
+        // }
+
         const App = {
-            data() {
-                return {
-                    flag: true
-                }
-            },
             render() {
-                return h(
-                    Fragment,
-                    {},
-                    [
-                        h('button', { onClick: () => {console.log(111); this.flag = !this.flag}}, 'click me'),
-                        h(Test, {flag: this.flag})
-                    ]
-                )
+                return h('div', {}, [
+                    this.$slots.header(),
+                    this.$slots.footer()
+                ])
             }
         }
-        render(h(App), app)
+        render(h(App, {}, {
+            header: () => h(Text, {}, 'header'),
+            footer: () => h(Text, {}, 'footer')
+        }), app)
     </script>
 </body>
 </html>

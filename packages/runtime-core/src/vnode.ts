@@ -1,4 +1,4 @@
-import { ShapeFlags } from '@vue3/shared'
+import { ShapeFlags, IsObject } from '@vue3/shared'
 
 export function createVNode(type, props: any = {}, children) {
     let ShapeFlag = 0
@@ -21,6 +21,8 @@ export function createVNode(type, props: any = {}, children) {
         let type = 0
         if (Array.isArray(children)) {
             type = ShapeFlags.ARRAY_CHILDREN
+        } else if (IsObject(children)) {
+            type = ShapeFlags.SLOTS_CHILDREN
         } else {
             type = ShapeFlags.TEXT_CHILDREN
         }

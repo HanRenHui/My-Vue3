@@ -50,14 +50,12 @@ export function track(target: Record<string, any>, key: string | symbol) {
 
 
 export function trigger(target: Record<string, any>, key: string | symbol) {
-    debugger
     const depMap = map.get(target)
     if (!depMap) return
     const deps = depMap.get(key)
     if (!deps) return
     new Set(deps).forEach((effect: any) => {
         if (effect !== activeEffect) {
-            console.log(22222)
             if (effect.scheduler) {
                 effect.scheduler()
             } else {

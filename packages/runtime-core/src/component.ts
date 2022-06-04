@@ -1,4 +1,5 @@
-import { reactive } from "@vue3/reactivity"
+import { proxyRefs, reactive } from "@vue3/reactivity"
+import { ShapeFlags } from "@vue3/shared"
 
 const initProps = (instance, rawProps) => {
     const props = {}
@@ -28,23 +29,36 @@ export function createComponentInstance(vnode) {
         propOptions,
         attrs: {},
         props: {},
-        proxy: null
+        proxy: null,
+        setupState: {}
     }
     return instance
 }
 
 const publicProperty = {
-    $attrs: i => i.attrs
+    $attrs: i => i.attrs,
+    $slots: i => i.slots
+}
+
+function initSlots(instance, children) {
+    if (instance.vnode.ShapeFlag & ShapeFlags.SLOTS_CHILDREN) {
+        instance.slots = children
+    }
 }
 
 
 export function setupComponent(instance) {
-    initProps(instance, instance.vnode.props)
+    const { props, children } = instance.vnode
+    initProps(instance, props)
+
+    initSlots(instance, children)
 
     instance.proxy = new Proxy(instance, {
         get(target, key) {
             if (key in target.data) {
                 return target.data[key]
+            } else if (key in target.setupState) {
+                return target.setupState[key]
             } else if (key in target.props) {
                 return target.props[key]
             } else {
@@ -58,6 +72,12 @@ export function setupComponent(instance) {
             if (key in target.data) {
                 target.data[key] = value;
                 return true
+            } else if (key in target.setupState) {
+                target.setupState[key] = value
+                return true;
+            } else if (key in target.props) {
+                console.warn('no set props')
+                return false
             }
             return false
         }
@@ -68,6 +88,17 @@ export function setupComponent(instance) {
         instance.data = reactive(data.call(instance.proxy))
     } else {
         instance.data = {}
+    }
+
+    const setup = instance.vnode.type.setup
+    if (setup) {
+        const setupContext = {}
+        const setupResult = setup(instance.props, setupContext)
+        if (typeof setupResult === 'function') {
+            instance.render = setupResult
+        } else {
+            instance.setupState = proxyRefs(setupResult)
+        }
     }
 }
 
