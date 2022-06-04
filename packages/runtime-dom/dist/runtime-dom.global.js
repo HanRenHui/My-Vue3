@@ -21,20 +21,32 @@ var VueRuntimedom = (() => {
   var src_exports = {};
   __export(src_exports, {
     Fragment: () => Fragment,
+    LifecycleHooks: () => LifecycleHooks,
     ReactiveEffect: () => ReactiveEffect,
     Text: () => Text,
     activeEffect: () => activeEffect,
     computed: () => computed,
+    createComponentInstance: () => createComponentInstance,
     createRenderer: () => createRenderer,
+    currentInstance: () => currentInstance,
     effect: () => effect,
+    getCurrentInstance: () => getCurrentInstance,
     h: () => h,
+    hasPropChanged: () => hasPropChanged,
+    onBeforeMount: () => onBeforeMount,
+    onBeforeUpdate: () => onBeforeUpdate,
+    onMounted: () => onMounted,
+    onUpdated: () => onUpdated,
     patchProp: () => patchProp,
     proxyRefs: () => proxyRefs,
     reactive: () => reactive,
     ref: () => ref,
     render: () => render,
+    setCurrentInstance: () => setCurrentInstance,
+    setupComponent: () => setupComponent,
     track: () => track,
     trigger: () => trigger,
+    updateProps: () => updateProps,
     watch: () => watch
   });
 
@@ -360,8 +372,18 @@ var VueRuntimedom = (() => {
   function IsObject(obj) {
     return typeof obj === "object" && obj !== null;
   }
+  function invokeFns(fns) {
+    fns.forEach((fn) => fn());
+  }
 
   // packages/runtime-core/src/component.ts
+  var currentInstance = null;
+  function setCurrentInstance(instance) {
+    currentInstance = instance;
+  }
+  function getCurrentInstance() {
+    return currentInstance;
+  }
   var initProps = (instance, rawProps) => {
     const props = {};
     const attrs = {};
@@ -444,7 +466,9 @@ var VueRuntimedom = (() => {
     const setup = instance.vnode.type.setup;
     if (setup) {
       const setupContext = {};
+      setCurrentInstance(instance);
       const setupResult = setup(instance.props, setupContext);
+      setCurrentInstance(null);
       if (typeof setupResult === "function") {
         instance.render = setupResult;
       } else {
@@ -476,6 +500,29 @@ var VueRuntimedom = (() => {
       }
     }
   }
+
+  // packages/runtime-core/src/apiLifecycle.ts
+  var LifecycleHooks = /* @__PURE__ */ ((LifecycleHooks2) => {
+    LifecycleHooks2["BEFORE_MOUNT"] = "BEFORE_MOUNT";
+    LifecycleHooks2["MOUNTED"] = "MOUNTED";
+    LifecycleHooks2["BEFORE_UPDAT"] = "BEFORE_UPDAT";
+    LifecycleHooks2["UPDATED"] = "UPDATED";
+    return LifecycleHooks2;
+  })(LifecycleHooks || {});
+  function createHook(type) {
+    return function(hook, target = currentInstance) {
+      const hooks = target[type] || (target[type] = []);
+      const wrappedHook = () => {
+        setCurrentInstance(target);
+        hook();
+      };
+      hooks.push(wrappedHook);
+    };
+  }
+  var onBeforeUpdate = createHook("BEFORE_UPDAT" /* BEFORE_UPDAT */);
+  var onUpdated = createHook("UPDATED" /* UPDATED */);
+  var onBeforeMount = createHook("BEFORE_MOUNT" /* BEFORE_MOUNT */);
+  var onMounted = createHook("MOUNTED" /* MOUNTED */);
 
   // packages/runtime-core/src/queue.ts
   var queue = [];
@@ -757,8 +804,10 @@ var VueRuntimedom = (() => {
     const setupRenderEffect = (instance, container, anchor) => {
       const updateComponentFn = () => {
         if (!instance.is_mounted) {
+          invokeFns(instance["BEFORE_MOUNT" /* BEFORE_MOUNT */]);
           instance.subTree = instance.render.call(instance.proxy);
           patch(null, instance.subTree, container, anchor);
+          invokeFns(instance["MOUNTED" /* MOUNTED */]);
           instance.is_mounted = true;
         } else {
           if (instance.next) {
@@ -766,7 +815,9 @@ var VueRuntimedom = (() => {
             updateComponentPreRender(instance, next);
           }
           const subTree = instance.render.call(instance.proxy);
+          invokeFns(instance["BEFORE_UPDAT" /* BEFORE_UPDAT */]);
           patch(instance.subTree, subTree, container, anchor);
+          invokeFns(instance["UPDATED" /* UPDATED */]);
           instance.subTree = subTree;
         }
       };

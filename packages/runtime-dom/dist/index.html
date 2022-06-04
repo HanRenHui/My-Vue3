@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+
 <body>
     <div id="app"></div>
     <script src="./runtime-dom.global.js"></script>
     <script>
-        const { render, h, Text, Fragment, ref } = window.VueRuntimedom
+        const { render, h, Text, Fragment, ref, onBeforeMount, onMounted, onBeforeUpdate, onUpdated, getCurrentInstance } = window.VueRuntimedom
         // const App = h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
         //     h('li',{key: 'a'}, 'a'),
         //     h('li',{key: 'b'}, 'b'),
@@ -74,7 +76,7 @@
                 flag: Boolean
             },
             render() {
-                return h('span',{}, `${this.flag ? 'true': 'false'}`)
+                return h('span', {}, `${this.flag ? 'true' : 'false'}`)
             }
         }
 
@@ -98,18 +100,65 @@
         //     }
         // }
 
+
+        function useCounter() {
+            const count = ref(0)
+            const handleClick = () => count.value += 1
+            onBeforeMount(() => {
+                console.log('before mounted')
+            })
+            onMounted(() => {
+                console.log(1111, getCurrentInstance())
+                console.log('mounted')
+            })
+
+            onBeforeUpdate(() => {
+                console.log('before update')
+            })
+
+            onUpdated(() => {
+                console.log('on updated')
+            })
+
+
+            return { count, handleClick }
+        }
+
+        // 插槽
+        // const App = {
+        //     setup() {
+        //         const { count, handleClick } = useCounter()
+        //         return {
+        //             count,
+        //             handleClick
+        //         }
+        //     },
+        //     render() {
+        //         return h('div', {}, [
+        //             this.$slots.header(),
+        //             this.$slots.footer()
+        //         ])
+        //     }
+        // }
+        // render(h(App, {}, {
+        //     header: () => h(Text, {}, 'header'),
+        //     footer: () => h(Text, {}, 'footer')
+        // }), app)
+
         const App = {
+            setup() {
+                const { count, handleClick } = useCounter()
+                return {
+                    count,
+                    handleClick
+                }
+            },
             render() {
-                return h('div', {}, [
-                    this.$slots.header(),
-                    this.$slots.footer()
-                ])
+                return h('button', { onClick: this.handleClick }, this.count + '')
             }
         }
-        render(h(App, {}, {
-            header: () => h(Text, {}, 'header'),
-            footer: () => h(Text, {}, 'footer')
-        }), app)
+        render(h(App), app)
     </script>
 </body>
+
 </html>

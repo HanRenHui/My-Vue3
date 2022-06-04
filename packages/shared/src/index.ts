@@ -16,3 +16,7 @@ export const enum ShapeFlags { // vue3提供的形状标识
     COMPONENT_KEPT_ALIVE = 1 << 9,
     COMPONENT = ShapeFlags.STATEFUL_COMPONENT | ShapeFlags.FUNCTIONAL_COMPONENT
 }
+
+export function invokeFns(fns) {
+    fns.forEach(fn => fn())
+}

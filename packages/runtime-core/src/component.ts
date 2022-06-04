@@ -1,6 +1,15 @@
 import { proxyRefs, reactive } from "@vue3/reactivity"
 import { ShapeFlags } from "@vue3/shared"
 
+export let currentInstance = null
+export function setCurrentInstance(instance) {
+    currentInstance = instance
+}
+
+export function getCurrentInstance() {
+    return currentInstance
+}
+
 const initProps = (instance, rawProps) => {
     const props = {}
     const attrs = {}
@@ -93,7 +102,9 @@ export function setupComponent(instance) {
     const setup = instance.vnode.type.setup
     if (setup) {
         const setupContext = {}
+        setCurrentInstance(instance)
         const setupResult = setup(instance.props, setupContext)
+        setCurrentInstance(null)
         if (typeof setupResult === 'function') {
             instance.render = setupResult
         } else {

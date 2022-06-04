@@ -1,5 +1,6 @@
 import { reactive, ReactiveEffect } from "@vue3/reactivity"
-import { ShapeFlags } from "@vue3/shared"
+import { invokeFns, ShapeFlags } from "@vue3/shared"
+import { LifecycleHooks } from "./apiLifecycle"
 import { createComponentInstance, hasPropChanged, setupComponent, updateProps } from "./component"
 import { queueJob } from './queue'
 import { createVNode, isSameVnode } from "./vnode"
@@ -276,9 +277,11 @@ export function createRenderer(renderOptions) {
     const setupRenderEffect = (instance,container, anchor) => {
         const updateComponentFn = () => {
             if (!instance.is_mounted) {
+                invokeFns(instance[LifecycleHooks.BEFORE_MOUNT])
                 // mount 挂载
                 instance.subTree = instance.render.call(instance.proxy)
                 patch(null, instance.subTree, container, anchor)
+                invokeFns(instance[LifecycleHooks.MOUNTED])
                 instance.is_mounted = true
             } else {
                 if (instance.next) {
@@ -287,7 +290,9 @@ export function createRenderer(renderOptions) {
                 }
                 // 更新
                 const subTree = instance.render.call(instance.proxy)
+                invokeFns(instance[LifecycleHooks.BEFORE_UPDAT])
                 patch(instance.subTree, subTree, container, anchor)
+                invokeFns(instance[LifecycleHooks.UPDATED])
                 instance.subTree = subTree
                 
             }
