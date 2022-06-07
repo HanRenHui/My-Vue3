@@ -27,16 +27,21 @@ var VueRuntimedom = (() => {
     activeEffect: () => activeEffect,
     computed: () => computed,
     createComponentInstance: () => createComponentInstance,
+    createElementBlock: () => createElementBlock,
+    createElementVNode: () => createVNode,
     createRenderer: () => createRenderer,
+    createVNode: () => createVNode,
     currentInstance: () => currentInstance,
     effect: () => effect,
     getCurrentInstance: () => getCurrentInstance,
     h: () => h,
     hasPropChanged: () => hasPropChanged,
+    isSameVnode: () => isSameVnode,
     onBeforeMount: () => onBeforeMount,
     onBeforeUpdate: () => onBeforeUpdate,
     onMounted: () => onMounted,
     onUpdated: () => onUpdated,
+    openBlock: () => openBlock,
     patchProp: () => patchProp,
     proxyRefs: () => proxyRefs,
     reactive: () => reactive,
@@ -44,6 +49,7 @@ var VueRuntimedom = (() => {
     render: () => render,
     setCurrentInstance: () => setCurrentInstance,
     setupComponent: () => setupComponent,
+    toDisplayString: () => toDisplayString,
     track: () => track,
     trigger: () => trigger,
     updateProps: () => updateProps,
@@ -373,6 +379,8 @@ var VueRuntimedom = (() => {
     return typeof obj === "object" && obj !== null;
   }
   function invokeFns(fns) {
+    if (!fns || !Array.isArray(fns))
+      return;
     fns.forEach((fn) => fn());
   }
 
@@ -545,7 +553,7 @@ var VueRuntimedom = (() => {
   }
 
   // packages/runtime-core/src/vnode.ts
-  function createVNode(type, props = {}, children) {
+  function createVNode(type, props = {}, children = [], patchFlag) {
     let ShapeFlag = 0;
     let vnode = {
       __v_isVnode: true,
@@ -553,9 +561,12 @@ var VueRuntimedom = (() => {
       props,
       ShapeFlag,
       children,
-      key: props.key
+      key: props == null ? void 0 : props.key,
+      patchFlag
     };
-    delete props.key;
+    if (props == null ? void 0 : props.key) {
+      delete props.key;
+    }
     if (typeof type === "string") {
       vnode.ShapeFlag = 1 /* ELEMENT */;
     } else if (typeof type === "object") {
@@ -572,10 +583,32 @@ var VueRuntimedom = (() => {
       }
       vnode.ShapeFlag |= type2;
     }
+    if (currentBlock && patchFlag) {
+      currentBlock.push(vnode);
+    }
     return vnode;
   }
   function isSameVnode(n1, n2) {
     return n1.type === n2.type && n1.key === n2.key;
+  }
+  var currentBlock = null;
+  function openBlock() {
+    currentBlock = [];
+  }
+  function setupBlock(vnode) {
+    vnode.dynamicChildren = currentBlock;
+    currentBlock = null;
+    return vnode;
+  }
+  function createElementBlock(type, props, children, patchFlag) {
+    const vnode = createVNode(type, props, children, patchFlag);
+    setupBlock(vnode);
+    return vnode;
+  }
+  function toDisplayString(val) {
+    if (typeof val === "string")
+      return val;
+    return JSON.stringify(val);
   }
 
   // packages/runtime-core/src/renderer.ts
@@ -770,10 +803,32 @@ var VueRuntimedom = (() => {
         }
       }
     };
+    const patchBlockChildren = (n1, n2) => {
+      for (let i = 0; i < n2.dynamicChildren.length; i++) {
+        patchElement(n1.dynamicChildren[i], n2.dynamicChildren[i]);
+      }
+    };
     const patchElement = (n1, n2) => {
       const el = n2.el = n1.el;
-      patchProps(el, n1.props, n2.props);
-      patchChildren(el, n1, n2);
+      const oldProps = n1.props || {};
+      const newProps = n2.props || {};
+      const { patchFlag } = n2;
+      if (patchFlag & 2 /* CLASS */) {
+        if (oldProps.class !== newProps.class) {
+          hostPatchProp(el, "class", oldProps.class, newProps.class);
+        }
+      } else if (patchFlag & 4 /* STYLE */) {
+        if (oldProps.style !== newProps.style) {
+          hostPatchProp(el, "style", oldProps.style, newProps.style);
+        }
+      } else {
+        patchProps(el, n1.props, n2.props);
+      }
+      if (n2.dynamicChildren) {
+        patchBlockChildren(n1, n2);
+      } else {
+        patchChildren(el, n1, n2);
+      }
     };
     const processElement = (n1, n2, container, anchor = null) => {
       if (!n1) {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app"></div>
+    <script src="./runtime-dom.global.js"></script>
+    <script>
+        const { 
+            createElementVNode: _createElementVNode,
+            toDisplayString: _toDisplayString,
+            createTextVNode: _createTextVNode,
+            normalizeClass: _normalizeClass, 
+            openBlock: _openBlock, 
+            createElementBlock: _createElementBlock,
+            h,
+            render
+        } = window.VueRuntimedom
+
+        
+        const App = {
+            render() {
+                const vnode = (_openBlock(), _createElementBlock("div", null, [
+                    _createElementVNode("span", null, 'span'),
+                    _createElementVNode("div", null, _toDisplayString('aa'), 1 /* TEXT */),
+                    _createElementVNode("p", {
+                        class: 'dd'
+                    }, [
+                        _createElementVNode("span", null, _toDisplayString('bb'), 1 /* TEXT */),
+                        _createElementVNode("p", null, [
+                        _createElementVNode("a", null, "123"),
+                        _createElementVNode("section", null, _toDisplayString('ccc'), 1 /* TEXT */)
+                        ])
+                    ], 2 /* CLASS */)
+                    ]))
+                
+                console.log(vnode)
+
+                return vnode;
+            }
+        }
+        render(h(App), app)
+
+    
+    </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 import { reactive, ReactiveEffect } from "@vue3/reactivity"
-import { invokeFns, ShapeFlags } from "@vue3/shared"
+import { invokeFns, PatchFlags, ShapeFlags } from "@vue3/shared"
+import patchClass from "packages/runtime-dom/src/module/class"
 import { LifecycleHooks } from "./apiLifecycle"
 import { createComponentInstance, hasPropChanged, setupComponent, updateProps } from "./component"
 import { queueJob } from './queue'
@@ -238,10 +239,35 @@ export function createRenderer(renderOptions) {
         }
     }
 
-    const patchElement = ( n1, n2) => {
+    const patchBlockChildren = (n1, n2) => {
+        for (let i = 0; i < n2.dynamicChildren.length; i++) {
+            patchElement(n1.dynamicChildren[i], n2.dynamicChildren[i])
+        }
+    }
+
+    const patchElement = (n1, n2) => {
         const el = n2.el = n1.el
-        patchProps(el, n1.props, n2.props)
-        patchChildren(el, n1, n2)
+        const oldProps = n1.props || {}
+        const newProps = n2.props || {}
+        const { patchFlag } = n2
+        if (patchFlag & PatchFlags.CLASS) { // 只有class是动态的 
+            if (oldProps.class !== newProps.class) {
+                // patchClass(el, newProps.class)
+                hostPatchProp(el, 'class', oldProps.class, newProps.class)
+            }
+        } else if (patchFlag & PatchFlags.STYLE) {// 只有style是动态的
+            if (oldProps.style !== newProps.style) {
+                hostPatchProp(el, 'style', oldProps.style, newProps.style)
+            }
+        } else {
+            patchProps(el, n1.props, n2.props)
+        }
+        if (n2.dynamicChildren) {
+            // 靶向更新
+            patchBlockChildren(n1, n2)
+        } else {
+            patchChildren(el, n1, n2)
+        }
     }
 
     const processElement = (n1, n2, container, anchor = null) => {
