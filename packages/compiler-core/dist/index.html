@@ -10,7 +10,7 @@
     <script src="./compiler-core.global.js"></script>
     <script>
         const { compile } = window.VueCompilerCore
-        const r = compile(`{{ aaa }}`)
+        const r = compile(`<div a=1 b=2 >{{123}}<span>aaa</span></div>`)
         // console.log('r', r)
 
 
@@ -110,7 +110,19 @@
 
             console.log('token', tokens)
         }
-        tokenize(str)
+        // tokenize(str)
+        function a() {
+            const b = 2;
+
+            function test() {
+                const b = 3;
+                console.log('b2', b)
+            }
+            console.log('b1', b)
+            test()
+        }
+
+        a()
     </script>
 </body>
 </html>

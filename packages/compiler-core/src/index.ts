@@ -86,47 +86,106 @@ function parseText(context) {
     }
 }
 
-function parseInterpolation(context) {
-    const outerStart = getCursor(context)
 
-    advanceBy(context, 2)
-    
-    const innerEndIndex = context.source.indexOf('}}')
+function parseInterpolation(context){ // 处理表达式的信息 
+    const start = getCursor(context); // xxx  }}
+    const closeIndex = context.source.indexOf('}}',2); // 查找结束的大括号
+    advanceBy(context,2); // {{  xx }}
+    const innerStart = getCursor(context);
+    const innerEnd = getCursor(context); // advancePositionWithMutation
 
-    const preContent = context.source.slice(0, innerEndIndex)
+    // 拿到原始的内容 
+    const rawContentLength = closeIndex - 2; // 原始内容的长度
+    let  preContent = parseTextData(context,rawContentLength); // 可以返回文本内容，是并且可以更新信息
+    let content = preContent.trim();
+    let startOffset = preContent.indexOf(content)//   {{  xxxx}}
 
-    const innerContent = preContent.trim()
-
-    const innerStartIndex = preContent.indexOf(innerContent)
-
-    // abc }}
-    advanceBy(context, innerStartIndex)
-
-    const innerStart = getCursor(context)
-
-    advanceBy(context, innerContent.length)
-
-    const innerEnd = getCursor(context)
-
-    // 干掉 }}
-    const rightIndex = context.source.indexOf('}}')
-    advanceBy(context, rightIndex + 2)
-
-
+    if(startOffset > 0){
+        advancePositionWithMutation(innerStart,preContent,startOffset)
+    }
+    let endOffset = startOffset + content.length
+    advancePositionWithMutation(innerEnd,preContent,endOffset)
+    advanceBy(context,2);
     return {
-        type: NodeTypes.INTERPOLATION,
-        content: {
-            type: NodeTypes.SIMPLE_EXPRESSION,
-            content: innerContent,
-            loc: getSelection(context, innerStart, innerEnd)
+        type:NodeTypes.INTERPOLATION, // 表达式
+        content:{
+            type:NodeTypes.SIMPLE_EXPRESSION,
+            content,
+            loc:getSelection(context,innerStart,innerEnd)
         },
-        loc: getSelection(context, outerStart)
+        loc:getSelection(context,start) // 表达式相关的信息
     }
 }
 
-function parse(template) {
-    // 创建一个解析上下文来进行处理
-    const context = createParserContext(template)
+
+function advanceSpace(context) {
+    const spaces = /^\s*/.exec(context.source)
+    advanceBy(context, spaces[0].length)
+}
+
+function parseAttributeValue(context) {
+    const start = getCursor(context);
+    const matched = /^([^\s=/>]+)/.exec(context.source)
+    const content = matched[0]
+    advanceBy(context, content.length)
+
+    advanceSpace(context)
+
+    return {
+        content,
+        loc: getSelection(context, start)
+    }
+}
+
+function parseAttribute(context) {
+    const start = getCursor(context);
+    const matched = /^([^\s=/>]+)/.exec(context.source)
+    const attributeName = matched[0]
+    advanceBy(context, attributeName.length)
+    advanceSpace(context)
+    advanceBy(context, 1); // 去掉=
+    const value = parseAttributeValue(context);
+    
+    return {
+        type: NodeTypes.ATTRIBUTE,
+        name: attributeName,
+        value: {
+            type: NodeTypes.TEXT,
+            ...value
+        },
+        loc: getSelection(context, start)
+    }
+}
+
+function parseAttributes(context) {
+    const props = []
+    while (context.source.length && context.source[0] !== '>') {
+        const prop = parseAttribute(context)
+        props.push(prop)
+    }
+    return props
+}
+
+function parseTag(context) {
+    const start = getCursor(context)
+    const matched = /^<\/?([a-z][^\s\/>]*)/.exec(context.source)
+    const tag = matched[1]
+    advanceBy(context, matched[0].length)
+    // 去除空格
+    advanceSpace(context)
+    const props = parseAttributes(context)
+    advanceSpace(context)
+    advanceBy(context, 1) // 去掉>
+    return {
+        type: NodeTypes.ELEMENT,
+        props,
+        tag,
+        loc: getSelection(context, start),
+        children: []
+    }
+}
+
+function parseChildren(context) {
     let nodes = []
 
     while(!isEnd(context)) {
@@ -136,7 +195,7 @@ function parse(template) {
         if (source.startsWith('{{')) {
             node = parseInterpolation(context)
         } else if (source.startsWith('<')) { // 标签k
-
+            node = parseElement(context);
         }
         if (!node) {
             // 文本
@@ -144,9 +203,32 @@ function parse(template) {
         }
 
         nodes.push(node)
-        console.log('node', node)
         break
     }
+
+    return nodes;
+}
+
+function parseElement(context) {
+   const ele = parseTag(context)
+   const children = parseChildren(context)
+   if (context.startsWith('</')) {
+       parseTag(context)
+   }
+
+    ele.children = children;
+
+    ele.loc = getSelection(context, ele.loc.start)
+
+    return ele;
+}
+
+function parse(template) {
+    // 创建一个解析上下文来进行处理
+    const context = createParserContext(template)
+
+    return parseChildren(context)
+   
 }
 
 export function compile(template) {

@@ -11,27 +11,28 @@
     <script src="./reactivity.global.js"></script>
     <script>
         const { computed, effect, reactive, watch, ref } = VueReactivity
+        const p = reactive({a: '1'})
         // const myName = computed(() => {
         //     return p.first + p.second
         // })
 
 
+        effect(() => {
+            app.innerText = p.a
+        })
+
+        setInterval(() => {
+            p.a += '1'
+        }, 2000)
+
+        // const name = ref('hrh')
         // effect(() => {
-        //     app.innerText = myName.value
+        //     app.innerText = name.value
         // })
 
         // setTimeout(() => {
-        //     p.first = '1'
-        // }, 2000)
-
-        const name = ref('hrh')
-        effect(() => {
-            app.innerText = name.value
-        })
-
-        setTimeout(() => {
-            name.value = 'hrh2'
-        }, 1500)
+        //     name.value = 'hrh2'
+        // }, 1500)
     </script>
 </body>
 </html>

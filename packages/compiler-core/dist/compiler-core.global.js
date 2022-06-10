@@ -2,7 +2,21 @@ var VueCompilerCore = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __propIsEnum = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b)) {
+        if (__propIsEnum.call(b, prop))
+          __defNormalProp(a, prop, b[prop]);
+      }
+    return a;
+  };
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, { get: all[name], enumerable: true });
@@ -90,30 +104,89 @@ var VueCompilerCore = (() => {
     };
   }
   function parseInterpolation(context) {
-    const outerStart = getCursor(context);
+    const start = getCursor(context);
+    const closeIndex = context.source.indexOf("}}", 2);
     advanceBy(context, 2);
-    const innerEndIndex = context.source.indexOf("}}");
-    const preContent = context.source.slice(0, innerEndIndex);
-    const innerContent = preContent.trim();
-    const innerStartIndex = preContent.indexOf(innerContent);
-    advanceBy(context, innerStartIndex);
     const innerStart = getCursor(context);
-    advanceBy(context, innerContent.length);
     const innerEnd = getCursor(context);
-    const rightIndex = context.source.indexOf("}}");
-    advanceBy(context, rightIndex + 2);
+    const rawContentLength = closeIndex - 2;
+    let preContent = parseTextData(context, rawContentLength);
+    let content = preContent.trim();
+    let startOffset = preContent.indexOf(content);
+    if (startOffset > 0) {
+      advancePositionWithMutation(innerStart, preContent, startOffset);
+    }
+    let endOffset = startOffset + content.length;
+    advancePositionWithMutation(innerEnd, preContent, endOffset);
+    advanceBy(context, 2);
     return {
       type: 5 /* INTERPOLATION */,
       content: {
         type: 4 /* SIMPLE_EXPRESSION */,
-        content: innerContent,
+        content,
         loc: getSelection(context, innerStart, innerEnd)
       },
-      loc: getSelection(context, outerStart)
+      loc: getSelection(context, start)
     };
   }
-  function parse(template) {
-    const context = createParserContext(template);
+  function advanceSpace(context) {
+    const spaces = /^\s*/.exec(context.source);
+    advanceBy(context, spaces[0].length);
+  }
+  function parseAttributeValue(context) {
+    const start = getCursor(context);
+    const matched = /^([^\s=/>]+)/.exec(context.source);
+    const content = matched[0];
+    advanceBy(context, content.length);
+    advanceSpace(context);
+    return {
+      content,
+      loc: getSelection(context, start)
+    };
+  }
+  function parseAttribute(context) {
+    const start = getCursor(context);
+    const matched = /^([^\s=/>]+)/.exec(context.source);
+    const attributeName = matched[0];
+    advanceBy(context, attributeName.length);
+    advanceSpace(context);
+    advanceBy(context, 1);
+    const value = parseAttributeValue(context);
+    return {
+      type: 6 /* ATTRIBUTE */,
+      name: attributeName,
+      value: __spreadValues({
+        type: 2 /* TEXT */
+      }, value),
+      loc: getSelection(context, start)
+    };
+  }
+  function parseAttributes(context) {
+    const props = [];
+    while (context.source.length && context.source[0] !== ">") {
+      const prop = parseAttribute(context);
+      props.push(prop);
+    }
+    return props;
+  }
+  function parseTag(context) {
+    const start = getCursor(context);
+    const matched = /^<\/?([a-z][^\s\/>]*)/.exec(context.source);
+    const tag = matched[1];
+    advanceBy(context, matched[0].length);
+    advanceSpace(context);
+    const props = parseAttributes(context);
+    advanceSpace(context);
+    advanceBy(context, 1);
+    return {
+      type: 1 /* ELEMENT */,
+      props,
+      tag,
+      loc: getSelection(context, start),
+      children: []
+    };
+  }
+  function parseChildren(context) {
     let nodes = [];
     while (!isEnd(context)) {
       const source = context.source;
@@ -121,14 +194,29 @@ var VueCompilerCore = (() => {
       if (source.startsWith("{{")) {
         node = parseInterpolation(context);
       } else if (source.startsWith("<")) {
+        node = parseElement(context);
       }
       if (!node) {
         node = parseText(context);
       }
       nodes.push(node);
-      console.log("node", node);
       break;
     }
+    return nodes;
+  }
+  function parseElement(context) {
+    const ele = parseTag(context);
+    const children = parseChildren(context);
+    if (context.startsWith("</")) {
+      parseTag(context);
+    }
+    ele.children = children;
+    ele.loc = getSelection(context, ele.loc.start);
+    return ele;
+  }
+  function parse(template) {
+    const context = createParserContext(template);
+    return parseChildren(context);
   }
   function compile(template) {
     const templateAST = parse(template);
