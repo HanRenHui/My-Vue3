@@ -19,18 +19,25 @@ export function reactive(target: Record<string, any>) {
         },
         set(target, key, value, recevier) {
             let rs = Reflect.set(target, key, value, recevier)
-            trigger(target, key) // ? trigger的顺序
+            trigger(target, key)
             return rs;
-
         }
     })
 
+    // 缓存
     cache.set(target, proxy)
 
     return proxy;
 }
 
 const map = new WeakMap()
+//  WeakMap {
+//     obj: Map {
+//         first: set: [effect],
+//         second: set,
+//         flag: set
+//     }
+// }
 export function track(target: Record<string, any>, key: string | symbol) {
     let depMap = map.get(target)
     if (!depMap) {
@@ -44,8 +51,9 @@ export function track(target: Record<string, any>, key: string | symbol) {
     if (!deps.has(activeEffect) && activeEffect) {
         deps.add(activeEffect)
     }
-    activeEffect && activeEffect.deps.push(deps)
 
+    
+    activeEffect && activeEffect.deps.push(deps)
 }
 
 

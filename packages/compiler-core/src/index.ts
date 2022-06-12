@@ -125,12 +125,14 @@ function advanceSpace(context) {
 
 function parseAttributeValue(context) {
     const start = getCursor(context);
-    const matched = /^([^\s=/>]+)/.exec(context.source)
-    const content = matched[0]
-    advanceBy(context, content.length)
-
-    advanceSpace(context)
-
+    const quote = context.source[0]
+    let content
+    if (quote === "'" || quote === '"') {
+        advanceBy(context, 1)
+        const endIndex = context.source.indexOf(quote)
+        content = parseTextData(context, endIndex)
+        advanceBy(context, 1)
+    }
     return {
         content,
         loc: getSelection(context, start)
@@ -144,8 +146,9 @@ function parseAttribute(context) {
     advanceBy(context, attributeName.length)
     advanceSpace(context)
     advanceBy(context, 1); // 去掉=
+    advanceSpace(context)
     const value = parseAttributeValue(context);
-    
+    advanceSpace(context)
     return {
         type: NodeTypes.ATTRIBUTE,
         name: attributeName,
@@ -191,8 +194,7 @@ function parseChildren(context) {
     while(!isEnd(context)) {
         const source = context.source
         let node
-
-        if (source.startsWith('{{')) {
+      if (source.startsWith('{{')) {
             node = parseInterpolation(context)
         } else if (source.startsWith('<')) { // 标签k
             node = parseElement(context);
@@ -212,7 +214,7 @@ function parseChildren(context) {
 function parseElement(context) {
    const ele = parseTag(context)
    const children = parseChildren(context)
-   if (context.startsWith('</')) {
+   if (context.source.startsWith('</')) {
        parseTag(context)
    }
 
@@ -228,7 +230,6 @@ function parse(template) {
     const context = createParserContext(template)
 
     return parseChildren(context)
-   
 }
 
 export function compile(template) {

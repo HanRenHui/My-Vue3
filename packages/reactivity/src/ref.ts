@@ -1,4 +1,4 @@
-import { activeEffect } from "./effect";
+import { activeEffect, ReactiveEffect } from "./effect";
 import { reactive } from "./reactive";
 
 function toReactive(value: any) {
@@ -7,7 +7,7 @@ function toReactive(value: any) {
 
 class RefImpl {
     public _value;
-    public deps = new Set();
+    public deps: Set<ReactiveEffect> = new Set();
     public __v_isRef = true;
     constructor(public rawValue: any) {
         this._value = toReactive(rawValue)

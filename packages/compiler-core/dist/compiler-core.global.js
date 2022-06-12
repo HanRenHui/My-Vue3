@@ -135,10 +135,14 @@ var VueCompilerCore = (() => {
   }
   function parseAttributeValue(context) {
     const start = getCursor(context);
-    const matched = /^([^\s=/>]+)/.exec(context.source);
-    const content = matched[0];
-    advanceBy(context, content.length);
-    advanceSpace(context);
+    const quote = context.source[0];
+    let content;
+    if (quote === "'" || quote === '"') {
+      advanceBy(context, 1);
+      const endIndex = context.source.indexOf(quote);
+      content = parseTextData(context, endIndex);
+      advanceBy(context, 1);
+    }
     return {
       content,
       loc: getSelection(context, start)
@@ -151,7 +155,9 @@ var VueCompilerCore = (() => {
     advanceBy(context, attributeName.length);
     advanceSpace(context);
     advanceBy(context, 1);
+    advanceSpace(context);
     const value = parseAttributeValue(context);
+    advanceSpace(context);
     return {
       type: 6 /* ATTRIBUTE */,
       name: attributeName,
@@ -207,7 +213,7 @@ var VueCompilerCore = (() => {
   function parseElement(context) {
     const ele = parseTag(context);
     const children = parseChildren(context);
-    if (context.startsWith("</")) {
+    if (context.source.startsWith("</")) {
       parseTag(context);
     }
     ele.children = children;

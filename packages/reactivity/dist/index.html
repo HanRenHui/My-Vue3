@@ -8,28 +8,64 @@
 </head>
 <body>
     <div id="app"></div>
+    <div id="app2"></div>
     <script src="./reactivity.global.js"></script>
     <script>
         const { computed, effect, reactive, watch, ref } = VueReactivity
-        const p = reactive({a: '1'})
-        // const myName = computed(() => {
+        // const obj = { first: '1' , second: '2', flag: true }
+        const flag = ref(true)
+        // const p = reactive(obj)
+
+        effect(() => {
+            console.log(flag.value)
+        })
+
+        flag.value =  obj
+
+
+
+        // const myName = computed(() => { // computed effect
         //     return p.first + p.second
         // })
 
 
-        effect(() => {
-            app.innerText = p.a
-        })
+        // effect(() => {
+        //     console.log(myName.value)
+        // })
 
-        setInterval(() => {
-            p.a += '1'
-        }, 2000)
+        // p.first = '123'
 
-        // const name = ref('hrh')
+        // [effect1] // activeEffect = 
+        // effect(() => { // effect1
+        //     app.innerText = p.first
+        // })
+
+        // p.first = '123'
+
+
+ 
+        // effect(() => { // effect1   deps: [set1, set2]
+        //     app2.innerText = p.flag ? p.a : p.b
+        // })
+
+        // const e = effect(() => { // effect3
+        //     console.log(p.flag)
+        // })
+
+        // e.effect.stop()
+
+
+        // setTimeout(() => {
+        //     p.flag = false;
+        // })
+        // setInterval(() => {
+        //     p.first += '1'
+        // }, 2000)
+
+        // const name = ref('hrh')d
         // effect(() => {
         //     app.innerText = name.value
         // })
-
         // setTimeout(() => {
         //     name.value = 'hrh2'
         // }, 1500)

@@ -1,4 +1,4 @@
-import { activeEffect, ReactiveEffect } from "./effect"
+import { activeEffect, effect, ReactiveEffect } from "./effect"
 
 class ComputedRefTmpl {
     private _value: any
@@ -36,8 +36,4 @@ class ComputedRefTmpl {
 
         return this._value
     }
-}
-
-export function computed(getter: () => void) {
-    return new ComputedRefTmpl(getter)
 }

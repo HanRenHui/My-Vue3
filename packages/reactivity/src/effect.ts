@@ -1,9 +1,9 @@
 export let activeEffect: ReactiveEffect
 
 export class ReactiveEffect {
-    parent: ReactiveEffect | undefined = undefined
+    parent: ReactiveEffect
     active = true
-    deps: any = [] //? 类型问题
+    deps: Set<ReactiveEffect>[] = [] //? 类型问题
     constructor(public fn: Function, public scheduler?: () => void) {}
 
     run() {
@@ -29,7 +29,6 @@ function cleanupEffect(effect: ReactiveEffect) {
     })
     effect.deps.length = 0
 }
-
 
 export function effect(fn: Function, options: Record<string, any> = {}) {
     const _effect = new ReactiveEffect(fn, options.scheduler)   
