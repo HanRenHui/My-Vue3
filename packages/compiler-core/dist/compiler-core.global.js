@@ -36,6 +36,8 @@ var VueCompilerCore = (() => {
   __export(src_exports, {
     compile: () => compile
   });
+
+  // packages/compiler-core/src/parse.ts
   function createParserContext(template) {
     return {
       line: 1,
@@ -46,6 +48,8 @@ var VueCompilerCore = (() => {
     };
   }
   function isEnd(context) {
+    if (context.source.startsWith("</"))
+      return true;
     return !context.source.length;
   }
   function getCursor(context) {
@@ -206,7 +210,6 @@ var VueCompilerCore = (() => {
         node = parseText(context);
       }
       nodes.push(node);
-      break;
     }
     return nodes;
   }
@@ -220,13 +223,89 @@ var VueCompilerCore = (() => {
     ele.loc = getSelection(context, ele.loc.start);
     return ele;
   }
+  function createRoot(children, loc) {
+    return {
+      type: 0 /* ROOT */,
+      children,
+      loc
+    };
+  }
   function parse(template) {
     const context = createParserContext(template);
-    return parseChildren(context);
+    const start = getCursor(context);
+    let nodes = parseChildren(context);
+    return createRoot(nodes, getSelection(context, start));
   }
+
+  // packages/compiler-core/src/transform.ts
+  function transformElement(node, context) {
+    console.log("1 in", node.tag, context.currentNode.tag);
+    return () => {
+      console.log("1 out", node.tag, context.currentNode.tag);
+    };
+  }
+  function transformText(node, context) {
+    console.log("2 in", node.tag, context.currentNode.tag);
+    return () => {
+      console.log("2 out", node.tag, context.currentNode);
+    };
+  }
+  function transformExpression(node, context) {
+    console.log("3 in", node.tag, context.currentNode.tag);
+    return () => {
+      console.log("3 out", node.tag, context.currentNode);
+    };
+  }
+  function createTransformContext() {
+    const context = {
+      currentNode: null,
+      parent: null,
+      transforms: [
+        transformElement,
+        transformText,
+        transformExpression
+      ]
+    };
+    return context;
+  }
+  function traverse(node, context) {
+    context.currentNode = node;
+    const onExit = [];
+    for (let i2 = 0; i2 < context.transforms.length; i2++) {
+      const exitFn = context.transforms[i2](node, context);
+      if (exitFn) {
+        onExit.push(exitFn);
+      }
+      if (!context.currentNode)
+        return;
+    }
+    switch (node.type) {
+      case 0 /* ROOT */:
+      case 1 /* ELEMENT */:
+        for (let i2 = 0; i2 < node.children.length; i2++) {
+          context.parent = context.currentNode;
+          traverse(node.children[i2], context);
+        }
+        break;
+    }
+    context.currentNode = node;
+    let i = onExit.length - 1;
+    while (i >= 0) {
+      onExit[i]();
+      i--;
+    }
+  }
+  function transform(ast) {
+    const context = createTransformContext();
+    traverse(ast, context);
+  }
+
+  // packages/compiler-core/src/index.ts
   function compile(template) {
     const templateAST = parse(template);
     console.log("ast", templateAST);
+    const jsAST = transform(templateAST);
+    console.log("jsAst", jsAST);
   }
   return __toCommonJS(src_exports);
 })();
