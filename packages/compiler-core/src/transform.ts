@@ -1,30 +1,17 @@
+import { transformElement } from "../transforms/transformElement"
+import { transformExpression } from "../transforms/transformExpression"
+import { transformText } from "../transforms/transformText"
 import { NodeTypes } from "./ast"
-
-function transformElement(node, context) {
-    console.log('1 in', node.tag, context.currentNode.tag)
-    return () => {
-        console.log('1 out', node.tag, context.currentNode.tag)
-    }
-}
-
-function transformText(node, context) {
-    console.log("2 in", node.tag, context.currentNode.tag)
-    return () => {
-        console.log('2 out', node.tag, context.currentNode)
-    }
-}
-
-function transformExpression(node, context) {
-    console.log('3 in', node.tag, context.currentNode.tag)
-    return () => {
-        console.log('3 out', node.tag, context.currentNode)
-    }
-}
 
 function createTransformContext() {
     const context = {
         currentNode: null,
         parent: null,
+        helpers: new Map(),
+        helper(name) {
+            const count = this.helpers.get(name) || 0
+            this.helpers.set(name, count + 1);
+        },
         transforms: [
             transformElement,
             transformText,
@@ -46,6 +33,8 @@ function traverse(node, context) {
         if (!context.currentNode) return;
     }
     switch(node.type) {
+        case NodeTypes.INTERPOLATION:
+            break;
         case NodeTypes.ROOT:
         case NodeTypes.ELEMENT:
             for (let i = 0;  i < node.children.length; i++) {

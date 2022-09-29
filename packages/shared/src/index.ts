@@ -1,8 +1,10 @@
-export function IsObject(obj: Record<string, any>) {
+export function isObject(obj: Record<string, any>) {
     return typeof obj === 'object' && obj !== null
 }
 
-
+export function isArray(obj: Record<string, any>) {
+    return Array.isArray(obj)
+}
 export const enum ShapeFlags { // vue3提供的形状标识
     ELEMENT = 1,
     FUNCTIONAL_COMPONENT = 1 << 1,

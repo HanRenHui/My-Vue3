@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node scripts/dev.js compiler-core -f global"
+    "dev": "node scripts/dev.js runtime-dom -f global"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,18 @@
   "dependencies": {
     "esbuild": "^0.14.39",
     "minimist": "^1.2.6",
-    "typescript": "^4.6.4",
     "vue": "^3.2.33"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.38.1",
+    "@typescript-eslint/parser": "^5.38.1",
+    "eslint": "^8.24.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-xo": "^0.42.0",
+    "eslint-config-xo-typescript": "^0.53.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1",
+    "typescript": "^4.8.4"
   }
 }

@@ -1,164 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-</head>
+  </head>
 
-<body>
+  <body>
     <div id="app"></div>
     <script src="./runtime-dom.global.js"></script>
     <script>
-        const { render, h, Text, Fragment, ref, onBeforeMount, onMounted, onBeforeUpdate, onUpdated, getCurrentInstance } = window.VueRuntimedom
-        // const App = h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
-        //     h('li',{key: 'a'}, 'a'),
-        //     h('li',{key: 'b'}, 'b'),
-        //     h('li',{key: 'c'}, 'c'),
-        //     h('li',{key: 'd'}, 'd'),
-        //     h('li',{key: 'e'}, 'e'),
-        //     h('li',{key: 'q'}, 'q'),
-        //     h('li',{key: 'f'}, 'f'),
-        //     h('li',{key: 'g'}, 'g'),
-        // ])
-        // render(App, app)
-
-        // render(h(Fragment, {}, [
-        //     h('p', {style: {color: 'red'}}, '123' ),
-        //     h('div', {}, [h('span', {}, 'hahah')]),
-        // ]), app)
-
-
-        // setTimeout(() => {
-        //     render(h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
-        //         h('li',{key: 'a'}, 'a'),
-        //         h('li',{key: 'b'}, 'b'),
-        //         h('li',{key: 'd'}, 'd'),
-        //         h('li',{key: 'c'}, 'c'),
-        //         h('li',{key: 'e'}, 'e'),
-        //         h('li',{key: 'h'}, 'h'),
-        //         h('li',{key: 'f'}, 'f'),
-        //         h('li',{key: 'g'}, 'g'),
-        //     ]), app)
-        // }, 1000)
-
-        // 1 0 2
-
-        // render(h(Text, null, '1333'), app)
-
-
-        // 2 4 6 7 11 15
-        // 2 5 6 7 11 15
-
-        // 2 3 1 5 6  7 9 84 
-
-
-        // const App = {
-        //     data: {
-        //         age: 18,
-        //         name: 'h'
-        //     },
-        //     props: {
-        //         a: String,
-        //         b: String
-        //     },
-        //     render(){
-        //         return h('p', {}, `年龄： ${this.age}, name: ${this.name}, ${this.a + this.b + this.$attrs.c}`)
-        //     }
-        // }
-
-        // render(h(App, { a: 'a', b: 'b', c: 'c'}), app)
-
-        const Test = {
-            props: {
-                flag: Boolean
-            },
-            render() {
-                return h('span', {}, `${this.flag ? 'true' : 'false'}`)
-            }
+      const {
+        render,
+        h,
+        Text,
+        Fragment,
+        ref,
+        onBeforeMount,
+        onMounted,
+        onBeforeUpdate,
+        onUpdated,
+        getCurrentInstance,
+        provide,
+        inject
+      } = window.VueRuntimedom
+      const Comp = {
+        render() {
+          return h(Fragment, [
+            this.$slots.header,
+            this.$slots.default,
+            this.$slots.footer
+          ])
         }
-
-        // const App = {
-        //     setup() {
-        //         const flag = ref(true)
-
-        //         return {
-        //             flag
-        //         }
-        //     },
-        //     render() {
-        //         return h(
-        //             Fragment,
-        //             {},
-        //             [
-        //                 h('button', { onClick: () => {console.log(111); this.flag = !this.flag}}, 'click me'),
-        //                 h(Test, {flag: this.flag})
-        //             ]
-        //         )
-        //     }
-        // }
-
-
-        function useCounter() {
-            const count = ref(0)
-            const handleClick = () => count.value += 1
-            onBeforeMount(() => {
-                console.log('before mounted')
-            })
-            onMounted(() => {
-                console.log(1111, getCurrentInstance())
-                console.log('mounted')
-            })
-
-            onBeforeUpdate(() => {
-                console.log('before update')
-            })
-
-            onUpdated(() => {
-                console.log('on updated')
-            })
-
-
-            return { count, handleClick }
+      }
+      const childComp = {
+        setup() {
+          const v = inject('test')
+          return {}
+        },
+        render() {
+          return h('div', '123')
         }
-
-        // 插槽
-        // const App = {
-        //     setup() {
-        //         const { count, handleClick } = useCounter()
-        //         return {
-        //             count,
-        //             handleClick
-        //         }
-        //     },
-        //     render() {
-        //         return h('div', {}, [
-        //             this.$slots.header(),
-        //             this.$slots.footer()
-        //         ])
-        //     }
-        // }
-        // render(h(App, {}, {
-        //     header: () => h(Text, {}, 'header'),
-        //     footer: () => h(Text, {}, 'footer')
-        // }), app)
-
-        const App = {
-            setup() {
-                const { count, handleClick } = useCounter()
-                return {
-                    count,
-                    handleClick
-                }
-            },
-            render() {
-                return h('button', { onClick: this.handleClick }, this.count + '')
-            }
+      }
+      const MyComponent = {
+        setup(props, { emit }) {
+          provide('test', {a: 1, b: 2}) 
+          return () =>
+            h('div', h(childComp))
         }
-        render(h(App), app)
+      }
+      // render(
+      //   h(Comp, null, {
+      //     default: h('div', 'default'),
+      //     header: h('div', 'header'),
+      //     footer: h('div', 'footer')
+      //   }),
+      //   app
+      // )
+      // vue里面 @符绑定的事件  会变成 onX
+      render(
+        h(MyComponent, { onClick: (a, b, c, d) => console.log(a, b, c, d) }),
+        app
+      )
+
+      // const App = h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
+      //     h('li',{key: 'a'}, 'a'),
+      //     h('li',{key: 'b'}, 'b'),
+      //     h('li',{key: 'c'}, 'c'),
+      //     h('li',{key: 'd'}, 'd'),
+      //     h('li',{key: 'e'}, 'e'),
+      //     h('li',{key: 'q'}, 'q'),
+      //     h('li',{key: 'f'}, 'f'),
+      //     h('li',{key: 'g'}, 'g'),
+      // ])
+      // render(App, app)
+
+      // render(h(Fragment, {}, [
+      //     h('p', {style: {color: 'red'}}, '123' ),
+      //     h('div', {}, [h('span', {}, 'hahah')]),
+      // ]), app)
+
+      // setTimeout(() => {
+      //     render(h('p', {style: {color: 'red'}, onClick: () => alert(123)}, [
+      //         h('li',{key: 'a'}, 'a'),
+      //         h('li',{key: 'b'}, 'b'),
+      //         h('li',{key: 'd'}, 'd'),
+      //         h('li',{key: 'c'}, 'c'),
+      //         h('li',{key: 'e'}, 'e'),
+      //         h('li',{key: 'h'}, 'h'),
+      //         h('li',{key: 'f'}, 'f'),
+      //         h('li',{key: 'g'}, 'g'),
+      //     ]), app)
+      // }, 1000)
+
+      // 1 0 2
+
+      // render(h(Text, null, '1333'), app)
+
+      // 2 4 6 7 11 15
+      // 2 5 6 7 11 15
+
+      // 2 3 1 5 6  7 9 84
+
+      // const App = {
+      //     data: {
+      //         age: 18,
+      //         name: 'h'
+      //     },
+      //     props: {
+      //         a: String,
+      //         b: String
+      //     },
+      //     render(){
+      //         return h('p', {}, `年龄： ${this.age}, name: ${this.name}, ${this.a + this.b + this.$attrs.c}`)
+      //     }
+      // }
+
+      // render(h(App, { a: 'a', b: 'b', c: 'c'}), app)
+
+      const Test = {
+        props: {
+          flag: Boolean
+        },
+        render() {
+          return h('span', {}, `${this.flag ? 'true' : 'false'}`)
+        }
+      }
+
+      // const App = {
+      //     setup() {
+      //         const flag = ref(true)
+
+      //         return {
+      //             flag
+      //         }
+      //     },
+      //     render() {
+      //         return h(
+      //             Fragment,
+      //             {},
+      //             [
+      //                 h('button', { onClick: () => {console.log(111); this.flag = !this.flag}}, 'click me'),
+      //                 h(Test, {flag: this.flag})
+      //             ]
+      //         )
+      //     }
+      // }
+
+      function useCounter() {
+        const count = ref(0)
+        const handleClick = () => (count.value += 1)
+        onBeforeMount(() => {
+          console.log('before mounted')
+        })
+        onMounted(() => {
+          console.log(1111, getCurrentInstance())
+          console.log('mounted')
+        })
+
+        onBeforeUpdate(() => {
+          console.log('before update')
+        })
+
+        onUpdated(() => {
+          console.log('on updated')
+        })
+
+        return { count, handleClick }
+      }
+
+      // 插槽
+      // const App = {
+      //     setup() {
+      //         const { count, handleClick } = useCounter()
+      //         return {
+      //             count,
+      //             handleClick
+      //         }
+      //     },
+      //     render() {
+      //         return h('div', {}, [
+      //             this.$slots.header(),
+      //             this.$slots.footer()
+      //         ])
+      //     }
+      // }
+      // render(h(App, {}, {
+      //     header: () => h(Text, {}, 'header'),
+      //     footer: () => h(Text, {}, 'footer')
+      // }), app)
+
+      // const App = {
+      //   setup() {
+      //     const { count, handleClick } = useCounter()
+      //     return {
+      //       count,
+      //       handleClick
+      //     }
+      //   },
+      //   render() {
+      //     return h('button', { onClick: this.handleClick }, this.count + '')
+      //   }
+      // }
+      // render(h(App), app)
     </script>
-</body>
-
+  </body>
 </html>

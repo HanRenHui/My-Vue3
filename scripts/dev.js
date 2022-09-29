@@ -9,7 +9,7 @@ const format = argv.f
 const outfile = path.join(__dirname, `../packages/${target}/dist/${target}.${format}.js`,)
 
 
-
+console.log(path.join(__dirname, `../packages/${target}/src/index.ts`))
 build({
     entryPoints: [path.join(__dirname, `../packages/${target}/src/index.ts`)],
     outfile,

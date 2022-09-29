@@ -12,15 +12,24 @@
     <script src="./reactivity.global.js"></script>
     <script>
         const { computed, effect, reactive, watch, ref } = VueReactivity
-        // const obj = { first: '1' , second: '2', flag: true }
-        const flag = ref(true)
-        // const p = reactive(obj)
+        const obj = { first: '1' , second: '2', flag: true, count: 1 }
+        // const flag = ref(true)
 
-        effect(() => {
-            console.log(flag.value)
+        let p = new Proxy(obj, {
+            set(target, key, value, recevier) {
+                console.log(333333, key)
+                Reflect.set(target, key, value, recevier)
+                return true
+            }
         })
 
-        flag.value =  obj
+        // Object.assign(p, {a1: 1})
+
+        // effect(() => {
+        //     console.log(flag.value)
+        // })
+
+        // flag.value =  obj
 
 
 
