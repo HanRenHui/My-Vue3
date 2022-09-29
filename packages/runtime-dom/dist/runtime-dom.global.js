@@ -506,6 +506,7 @@ var VueRuntimedom = (() => {
       const wrappedHook = () => {
         setCurrentInstance(target);
         hook();
+        setCurrentInstance(null);
       };
       hooks.push(wrappedHook);
     };
