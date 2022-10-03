@@ -133,7 +133,7 @@ var VueCompilerCore = (() => {
   }
   function parseAttribute(context) {
     const start = getCursor(context);
-    const match = /^[^\s=]+/.exec(context.source);
+    const match = /^[^\r\n\t\f=]+/.exec(context.source);
     const name = match[0];
     advanceBy(context, name.length);
     advanceBySpaces(context);
@@ -141,7 +141,6 @@ var VueCompilerCore = (() => {
     advanceBySpaces(context);
     const value = parseAttributeValue(context);
     return {
-      start,
       loc: getSelection(context, start),
       name,
       value,
@@ -198,7 +197,12 @@ var VueCompilerCore = (() => {
       }
       nodes.push(node);
     }
-    return nodes;
+    nodes.forEach((node2, i) => {
+      if (node2.type === 2 /* TEXT */ && /^[\r\n\t\f ]*$/.exec(node2.content)) {
+        nodes[i] = null;
+      }
+    });
+    return nodes.filter(Boolean);
   }
   function createContext(source) {
     return {
@@ -209,10 +213,19 @@ var VueCompilerCore = (() => {
       offset: 0
     };
   }
+  function createRootNode(children, loc) {
+    return {
+      type: 0 /* ROOT */,
+      loc,
+      children
+    };
+  }
   function parse(template) {
     const context = createContext(template);
+    const start = getCursor(context);
     const nodes = parseChildren(context);
-    return nodes;
+    const RootNode = createRootNode(nodes, getSelection(context, start));
+    return RootNode;
   }
 
   // packages/compiler-core/src/index.ts

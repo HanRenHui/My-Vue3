@@ -136,7 +136,7 @@ function parseAttributeValue(context) {
 
 function parseAttribute(context) {
   const start = getCursor(context)
-  const match = /^[^\s=]+/.exec(context.source)
+  const match = /^[^\r\n\t\f=]+/.exec(context.source)
   const name = match[0]
   advanceBy(context, name.length)
   advanceBySpaces(context)
@@ -144,7 +144,6 @@ function parseAttribute(context) {
   advanceBySpaces(context)
   const value = parseAttributeValue(context)
   return {
-    start,
     loc: getSelection(context, start),
     name,
     value,
@@ -214,8 +213,13 @@ function parseChildren(context: Record<string, any>) {
     }
     nodes.push(node)
   }
-
-  return nodes
+  // 去除空白字符的node节点
+  nodes.forEach((node, i) => {
+    if (node.type === NodeTypes.TEXT && /^[\r\n\t\f ]*$/.exec(node.content)) {
+      nodes[i] = null
+    }
+  })
+  return nodes.filter(Boolean)
 }
 
 function createContext(source: string) {
@@ -228,8 +232,18 @@ function createContext(source: string) {
   }
 }
 
+function createRootNode(children, loc) {
+  return {
+    type: NodeTypes.ROOT,
+    loc,
+    children
+  }
+}
+
 export function parse(template: string) {
   const context = createContext(template)
+  const start = getCursor(context)
   const nodes = parseChildren(context)
-  return nodes
+  const RootNode = createRootNode(nodes, getSelection(context, start))
+  return RootNode
 }
