@@ -1,58 +1,56 @@
-import { transformElement } from "../transforms/transformElement"
-import { transformExpression } from "../transforms/transformExpression"
-import { transformText } from "../transforms/transformText"
-import { NodeTypes } from "./ast"
+import { transformElement } from '../transforms/transformElement'
+import { transformExpression } from '../transforms/transformExpression'
+import { transformText } from '../transforms/transformText'
+import { NodeTypes } from './ast'
+import { TO_DISPLAY_STRING } from './runtimeHelpers'
 
 function createTransformContext() {
-    const context = {
-        currentNode: null,
-        parent: null,
-        helpers: new Map(),
-        helper(name) {
-            const count = this.helpers.get(name) || 0
-            this.helpers.set(name, count + 1);
-        },
-        transforms: [
-            transformElement,
-            transformText,
-            transformExpression,
-        ]
-    }
+  const context = {
+    parent: null,
+    currentNode: null,
+    helpers: new Map(),
+    helper(name) {
+      const count = context.helpers.get(name) || 0
+      context.helpers[name] = count + 1
+    },
+    nodeTransforms: [transformElement, transformText, transformExpression]
+  }
 
-    return context
+  return context
 }
 
-function traverse(node, context) {
-    context.currentNode = node
-    const onExit = []
-    for (let i = 0; i < context.transforms.length; i++) {
-        const exitFn = context.transforms[i](node, context)
-        if (exitFn) {
-            onExit.push(exitFn)
-        }
-        if (!context.currentNode) return;
+function traverse(ast, context) {
+  const currentNode = (context.currentNode = ast)
+  const transforms = context.nodeTransforms
+  const exitFns = []
+  for (let i = 0; i < transforms.length; i++) {
+    const exitFn = transforms[i](ast, context)
+    if (typeof exitFn === 'function') {
+      exitFns.push(exitFn)
     }
-    switch(node.type) {
-        case NodeTypes.INTERPOLATION:
-            break;
-        case NodeTypes.ROOT:
-        case NodeTypes.ELEMENT:
-            for (let i = 0;  i < node.children.length; i++) {
-                context.parent = context.currentNode
-                traverse(node.children[i], context);
-            }
-            break;
-    }
+  }
 
-    context.currentNode = node;
-    let i = onExit.length - 1;
-    while(i >= 0) {
-        onExit[i]()
-        i--
-    }
+  switch (currentNode.type) {
+    case NodeTypes.INTERPOLATION:
+      context.helper(TO_DISPLAY_STRING)
+      break
+    case NodeTypes.ELEMENT:
+    case NodeTypes.ROOT:
+      const children = currentNode.children
+      for (let i = 0; i < children.length; i++) {
+        traverse(children[i], context)
+      }
+  }
+
+  context.currentNode = ast
+  let i = 0
+  while (i < exitFns.length) {
+    exitFns[i]()
+    i++
+  }
 }
 
 export function transform(ast) {
-    const context = createTransformContext()
-    traverse(ast, context)
+  const context = createTransformContext()
+  traverse(ast, context)
 }

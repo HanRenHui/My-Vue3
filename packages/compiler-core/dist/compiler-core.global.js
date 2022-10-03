@@ -228,10 +228,99 @@ var VueCompilerCore = (() => {
     return RootNode;
   }
 
+  // packages/compiler-core/transforms/transformElement.ts
+  function transformElement(node, context) {
+    if (node.type === 1 /* ELEMENT */) {
+      console.log("in element", node.tag);
+      return () => {
+        console.log("out element", node.tag);
+      };
+    }
+  }
+
+  // packages/compiler-core/transforms/transformExpression.ts
+  function transformExpression(node, context) {
+    if (node.type === 5 /* INTERPOLATION */) {
+      console.log("in expression", node);
+      const content = node.content.content;
+      node.content.content = `_ctx.${content}`;
+      return () => {
+        console.log("out expression", node);
+      };
+    }
+  }
+
+  // packages/compiler-core/transforms/transformText.ts
+  function transformText(node, context) {
+    if (node.type === 2 /* TEXT */) {
+      console.log("in text", node);
+      return () => {
+        console.log("out text", node);
+      };
+    }
+    if (node.type === 0 /* ROOT */ || node.type === 1 /* ELEMENT */) {
+    }
+  }
+
+  // packages/compiler-core/src/runtimeHelpers.ts
+  var TO_DISPLAY_STRING = Symbol.for("TO_DSPLAY_STRING");
+  var helperMap = {
+    [TO_DISPLAY_STRING]: "toDisplayString"
+  };
+
+  // packages/compiler-core/src/transform.ts
+  function createTransformContext() {
+    const context = {
+      parent: null,
+      currentNode: null,
+      helpers: /* @__PURE__ */ new Map(),
+      helper(name) {
+        const count = context.helpers.get(name) || 0;
+        context.helpers[name] = count + 1;
+      },
+      nodeTransforms: [transformElement, transformText, transformExpression]
+    };
+    return context;
+  }
+  function traverse(ast, context) {
+    const currentNode = context.currentNode = ast;
+    const transforms = context.nodeTransforms;
+    const exitFns = [];
+    for (let i2 = 0; i2 < transforms.length; i2++) {
+      const exitFn = transforms[i2](ast, context);
+      if (typeof exitFn === "function") {
+        exitFns.push(exitFn);
+      }
+    }
+    switch (currentNode.type) {
+      case 5 /* INTERPOLATION */:
+        context.helper(TO_DISPLAY_STRING);
+        break;
+      case 1 /* ELEMENT */:
+      case 0 /* ROOT */:
+        const children = currentNode.children;
+        for (let i2 = 0; i2 < children.length; i2++) {
+          traverse(children[i2], context);
+        }
+    }
+    context.currentNode = ast;
+    let i = 0;
+    while (i < exitFns.length) {
+      exitFns[i]();
+      i++;
+    }
+  }
+  function transform(ast) {
+    const context = createTransformContext();
+    traverse(ast, context);
+  }
+
   // packages/compiler-core/src/index.ts
   function compile(template) {
     const templateAST = parse(template);
     console.log("ast", templateAST);
+    const jsAST = transform(templateAST);
+    console.log("jsAst", jsAST);
   }
   return __toCommonJS(src_exports);
 })();

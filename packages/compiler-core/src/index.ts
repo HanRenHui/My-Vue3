@@ -6,7 +6,7 @@ export function compile(template) {
 
   console.log('ast', templateAST)
 
-  // const jsAST = transform(templateAST)
+  const jsAST = transform(templateAST)
 
-  // console.log('jsAst', jsAST)
+  console.log('jsAst', jsAST)
 }
