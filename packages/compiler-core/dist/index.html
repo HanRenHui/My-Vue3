@@ -10,13 +10,15 @@
     <script src="./compiler-core.global.js"></script>
     <script>
 let str = 
-`12345
+`01234
         12345
         12345
     12345<`
         const { compile } = window.VueCompilerCore
+        const res = compile('<div ><span></span></div>') 
+        console.log(res)
         // const r = compile(`<div>{{a}} 123 <span></span> {{b}} 321 {{c}}</div>`)
-        const r = compile(str)
+        // const r = compile(str)
     </script>
 </body>
 </html>

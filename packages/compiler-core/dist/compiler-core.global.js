@@ -1,106 +1,162 @@
 var VueCompilerCore = (() => {
-  var __defProp = Object.defineProperty
-  var __getOwnPropDesc = Object.getOwnPropertyDescriptor
-  var __getOwnPropNames = Object.getOwnPropertyNames
-  var __hasOwnProp = Object.prototype.hasOwnProperty
+  var __defProp = Object.defineProperty;
+  var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+  var __getOwnPropNames = Object.getOwnPropertyNames;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
   var __export = (target, all) => {
     for (var name in all)
-      __defProp(target, name, { get: all[name], enumerable: true })
-  }
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
   var __copyProps = (to, from, except, desc) => {
-    if ((from && typeof from === 'object') || typeof from === 'function') {
+    if (from && typeof from === "object" || typeof from === "function") {
       for (let key of __getOwnPropNames(from))
         if (!__hasOwnProp.call(to, key) && key !== except)
-          __defProp(to, key, {
-            get: () => from[key],
-            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-          })
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
     }
-    return to
-  }
-  var __toCommonJS = (mod) =>
-    __copyProps(__defProp({}, '__esModule', { value: true }), mod)
+    return to;
+  };
+  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
   // packages/compiler-core/src/index.ts
-  var src_exports = {}
+  var src_exports = {};
   __export(src_exports, {
     compile: () => compile
-  })
+  });
 
   // packages/compiler-core/src/parse.ts
-  function advancePositionWithMutation(context, endIndex) {
-    let linsCount = 0
-    let linePos = -1
+  function advancePositionWithMutation(context, source, endIndex) {
+    let linsCount = 0;
+    let linePos = -1;
     for (let i = 0; i < endIndex; i++) {
-      if (context.source.charCodeAt(i) == 10) {
-        linsCount++
-        linePos = i
+      if (source.charCodeAt(i) == 10) {
+        linsCount++;
+        linePos = i;
       }
     }
-    context.line += linsCount
+    context.line += linsCount;
     if (linePos === -1) {
-      context.column += endIndex
+      context.column += endIndex;
     } else {
-      context.column = endIndex - linePos
+      context.column = endIndex - linePos;
     }
-    context.offset += endIndex
+    context.offset += endIndex;
   }
   function advanceBy(context, endIndex) {
-    advancePositionWithMutation(context, endIndex)
-    context.souce = context.source.slice(endIndex)
+    advancePositionWithMutation(context, context.source, endIndex);
+    context.source = context.source.slice(endIndex);
   }
   function parseTextData(context, endIndex) {
-    const rawText = context.source.slice(0, endIndex)
-    advanceBy(context, endIndex)
-    return rawText
+    const rawText = context.source.slice(0, endIndex);
+    advanceBy(context, endIndex);
+    return rawText;
   }
   function getCursor(context) {
-    const { line, column, offset } = context
+    const { line, column, offset } = context;
     return {
       line,
       column,
       offset
-    }
+    };
   }
   function getSelection(context, start, end) {
-    end = end || getCursor(context)
+    end = end || getCursor(context);
     return {
       start,
       end,
       source: context.originSource.slice(start.offset, end.offset)
-    }
+    };
   }
   function parseText(context) {
-    const endTokens = ['{{', '<']
-    let lastIndex = context.source.length
+    const endTokens = ["{{", "<"];
+    let lastIndex = context.source.length;
     for (let i = 0; i < endTokens.length; i++) {
-      const index = context.source.indexOf(endTokens[i])
+      const index = context.source.indexOf(endTokens[i]);
       if (index !== -1 && lastIndex > index) {
-        lastIndex = index
+        lastIndex = index;
       }
     }
-    const start = getCursor(context)
-    const content = parseTextData(context, lastIndex)
+    const start = getCursor(context);
+    const content = parseTextData(context, lastIndex);
     return {
       type: 2 /* TEXT */,
       loc: getSelection(context, start),
       content
+    };
+  }
+  function parseInterception(context) {
+    const outerStart = getCursor(context);
+    const closeIndex = context.source.indexOf("}}");
+    advanceBy(context, 2);
+    const innerStart = getCursor(context);
+    const innerEnd = getCursor(context);
+    const originContent = parseTextData(context, closeIndex - 2);
+    const content = originContent.trim();
+    const startOffset = originContent.indexOf(content);
+    if (startOffset) {
+      advancePositionWithMutation(innerStart, originContent, startOffset);
+    }
+    const endOffset = startOffset + content.length;
+    advancePositionWithMutation(innerEnd, originContent, endOffset);
+    advanceBy(context, 2);
+    return {
+      type: 5 /* INTERPOLATION */,
+      content: {
+        type: 4 /* SIMPLE_EXPRESSION */,
+        content,
+        loc: getSelection(context, innerStart, innerEnd)
+      },
+      loc: getSelection(context, outerStart)
+    };
+  }
+  function advanceBySpaces(context) {
+    const reg = /^[ \r\n\t]*/;
+    const match = reg.exec(context.source);
+    if (match) {
+      advanceBy(context, match[0].length);
     }
   }
-  function parseChildren(context, template) {
-    let nodes = []
-    let node = null
-    while (context.source) {
-      if (context.source.startsWith('<')) {
-        break
-      } else if (context.source.startsWith('{{')) {
-        break
-      } else {
-        node = parseText(context)
-      }
-      nodes.push(node)
+  function parseTag(context) {
+    const start = getCursor(context);
+    const reg = /^<\/?([a-z][^ \t\r\n/>]*)/;
+    const match = reg.exec(context.source);
+    const tag = match[1];
+    advanceBy(context, match[0].length);
+    advanceBySpaces(context);
+    const isSelfClosing = context.source.startsWith("</");
+    advanceBy(context, isSelfClosing ? 2 : 1);
+    return {
+      type: 1 /* ELEMENT */,
+      isSelfClosing,
+      tag,
+      props: {},
+      children: [],
+      loc: getSelection(context, start)
+    };
+  }
+  function parseElement(context) {
+    const ele = parseTag(context);
+    const nodes = parseChildren(context);
+    if (context.source.startsWith("</")) {
+      parseTag(context);
     }
-    return nodes
+    ele.children = nodes;
+    return ele;
+  }
+  function parseChildren(context) {
+    debugger;
+    const nodes = [];
+    let node = null;
+    while (context.source && !context.source.startsWith("</")) {
+      if (context.source.startsWith("<")) {
+        node = parseElement(context);
+      } else if (context.source.startsWith("{{")) {
+        node = parseInterception(context);
+      } else {
+        node = parseText(context);
+      }
+      nodes.push(node);
+    }
+    return nodes;
   }
   function createContext(source) {
     return {
@@ -109,19 +165,19 @@ var VueCompilerCore = (() => {
       line: 1,
       column: 1,
       offset: 0
-    }
+    };
   }
   function parse(template) {
-    const context = createContext(template)
-    const nodes = parseChildren(context, template)
-    console.log(4444, nodes)
+    const context = createContext(template);
+    const nodes = parseChildren(context);
+    return nodes;
   }
 
   // packages/compiler-core/src/index.ts
   function compile(template) {
-    const templateAST = parse(template)
-    console.log('ast', templateAST)
+    const templateAST = parse(template);
+    console.log("ast", templateAST);
   }
-  return __toCommonJS(src_exports)
-})()
+  return __toCommonJS(src_exports);
+})();
 //# sourceMappingURL=compiler-core.global.js.map

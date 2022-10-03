@@ -28,9 +28,9 @@ const initProps = (instance, rawProps) => {
 }
 
 export function createComponentInstance(vnode, parent) {
-  console.log(33333, parent)
   const { render, props: propOptions } = vnode.type
   const instance = {
+    ctx: {},
     data: null,
     render,
     is_mounted: false,
@@ -43,6 +43,7 @@ export function createComponentInstance(vnode, parent) {
     proxy: null,
     setupState: {},
     parent,
+    slots: {},
     provides: parent ? parent.provides : {}
   }
   return instance

@@ -302,6 +302,7 @@ export function createRenderer(renderOptions) {
   const updateComponentPreRender = (instance, nextVNode) => {
     instance.next = null
     updateProps(instance.props, nextVNode.props)
+    instance.slots = nextVNode.children
   }
 
   const setupRenderEffect = (instance, container, anchor) => {
