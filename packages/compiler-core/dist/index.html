@@ -15,7 +15,7 @@ let str =
         12345
     12345<`
         const { compile } = window.VueCompilerCore
-        const res = compile('<div ><span></span></div>') 
+        const res = compile('<div class="div" a="1" ><span b = "2" c="3"></span></div>') 
         console.log(res)
         // const r = compile(`<div>{{a}} 123 <span></span> {{b}} 321 {{c}}</div>`)
         // const r = compile(str)

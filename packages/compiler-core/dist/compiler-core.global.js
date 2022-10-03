@@ -115,6 +115,48 @@ var VueCompilerCore = (() => {
       advanceBy(context, match[0].length);
     }
   }
+  function parseAttributeValue(context) {
+    const start = getCursor(context);
+    const quote = context.source[0];
+    let content = "";
+    if (quote === '"' || quote === "'") {
+      advanceBy(context, 1);
+      const closeIndex = context.source.indexOf(quote);
+      content = parseTextData(context, closeIndex);
+      advanceBy(context, 1);
+    }
+    return {
+      content,
+      loc: getSelection(context, start),
+      type: 2 /* TEXT */
+    };
+  }
+  function parseAttribute(context) {
+    const start = getCursor(context);
+    const match = /^[^\s=]+/.exec(context.source);
+    const name = match[0];
+    advanceBy(context, name.length);
+    advanceBySpaces(context);
+    advanceBy(context, 1);
+    advanceBySpaces(context);
+    const value = parseAttributeValue(context);
+    return {
+      start,
+      loc: getSelection(context, start),
+      name,
+      value,
+      type: 6 /* ATTRIBUTE */
+    };
+  }
+  function parseAttributes(context) {
+    const props = [];
+    while (context.source && !context.source.startsWith(">")) {
+      const prop = parseAttribute(context);
+      props.push(prop);
+      advanceBySpaces(context);
+    }
+    return props;
+  }
   function parseTag(context) {
     const start = getCursor(context);
     const reg = /^<\/?([a-z][^ \t\r\n/>]*)/;
@@ -123,12 +165,13 @@ var VueCompilerCore = (() => {
     advanceBy(context, match[0].length);
     advanceBySpaces(context);
     const isSelfClosing = context.source.startsWith("</");
+    const props = parseAttributes(context);
     advanceBy(context, isSelfClosing ? 2 : 1);
     return {
       type: 1 /* ELEMENT */,
       isSelfClosing,
       tag,
-      props: {},
+      props,
       children: [],
       loc: getSelection(context, start)
     };
@@ -143,7 +186,6 @@ var VueCompilerCore = (() => {
     return ele;
   }
   function parseChildren(context) {
-    debugger;
     const nodes = [];
     let node = null;
     while (context.source && !context.source.startsWith("</")) {

@@ -115,6 +115,54 @@ function advanceBySpaces(context) {
   }
 }
 
+function parseAttributeValue(context) {
+  const start = getCursor(context)
+
+  const quote = context.source[0]
+
+  let content = ''
+  if (quote === '"' || quote === "'") {
+    advanceBy(context, 1)
+    const closeIndex = context.source.indexOf(quote)
+    content = parseTextData(context, closeIndex)
+    advanceBy(context, 1)
+  }
+  return {
+    content,
+    loc: getSelection(context, start),
+    type: NodeTypes.TEXT
+  }
+}
+
+function parseAttribute(context) {
+  const start = getCursor(context)
+  const match = /^[^\s=]+/.exec(context.source)
+  const name = match[0]
+  advanceBy(context, name.length)
+  advanceBySpaces(context)
+  advanceBy(context, 1)
+  advanceBySpaces(context)
+  const value = parseAttributeValue(context)
+  return {
+    start,
+    loc: getSelection(context, start),
+    name,
+    value,
+    type: NodeTypes.ATTRIBUTE
+  }
+}
+function parseAttributes(context) {
+  const props = []
+  while (context.source && !context.source.startsWith('>')) {
+    // a = "123"
+    const prop = parseAttribute(context)
+    props.push(prop)
+    advanceBySpaces(context)
+  }
+
+  return props
+}
+
 function parseTag(context) {
   const start = getCursor(context)
   // const reg = /^<\/?[a-z][^\t\r\n]*/
@@ -125,6 +173,7 @@ function parseTag(context) {
   advanceBySpaces(context)
   // const tag = match[0]
   const isSelfClosing = context.source.startsWith('</')
+  const props = parseAttributes(context)
 
   advanceBy(context, isSelfClosing ? 2 : 1)
 
@@ -132,7 +181,7 @@ function parseTag(context) {
     type: NodeTypes.ELEMENT,
     isSelfClosing,
     tag,
-    props: {},
+    props,
     children: [],
     loc: getSelection(context, start)
   }
@@ -149,7 +198,6 @@ function parseElement(context) {
 }
 
 function parseChildren(context: Record<string, any>) {
-  debugger
   const nodes = []
   let node = null
   while (context.source && !context.source.startsWith('</')) {
