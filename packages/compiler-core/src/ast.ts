@@ -1,3 +1,5 @@
+import { CREATE_TEXT } from './runtimeHelpers'
+
 export const enum NodeTypes {
   ROOT, // 根节点
   ELEMENT, // 元素
@@ -33,7 +35,7 @@ export const enum NodeTypes {
 //     type: NodeTypes.ELEMENT,
 //     isSelfClosing,
 //     tag,
-//     props,
+//     props: ATTREBUTE[], // attribute节点的数组
 //     children: [],
 //     loc: getSelection(context, start)
 
@@ -63,3 +65,16 @@ export const enum NodeTypes {
 // type: NodeTypes.TEXT,
 // loc: getSelection(context, start),
 // content
+
+// 需要调用createTextNode创建的文本节点
+// type: NodeTypes.TEXT_CALL
+// context: Text的node节点的内容
+
+export function createCallExpression(context, args) {
+  const callee = context.helper(CREATE_TEXT)
+  return {
+    callee,
+    arguments: args,
+    type: NodeTypes.JS_CALL_EXPRESSION
+  }
+}

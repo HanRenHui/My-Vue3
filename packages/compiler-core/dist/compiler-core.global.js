@@ -23,6 +23,24 @@ var VueCompilerCore = (() => {
     compile: () => compile
   });
 
+  // packages/compiler-core/src/runtimeHelpers.ts
+  var TO_DISPLAY_STRING = Symbol.for("toDisplayString");
+  var CREATE_TEXT = Symbol.for("createTextVnode");
+  var helperMap = {
+    [TO_DISPLAY_STRING]: "toDisplayString",
+    [CREATE_TEXT]: "createTextVnode"
+  };
+
+  // packages/compiler-core/src/ast.ts
+  function createCallExpression(context, args) {
+    const callee = context.helper(CREATE_TEXT);
+    return {
+      callee,
+      arguments: args,
+      type: 14 /* JS_CALL_EXPRESSION */
+    };
+  }
+
   // packages/compiler-core/src/parse.ts
   function advancePositionWithMutation(context, source, endIndex) {
     let linsCount = 0;
@@ -251,22 +269,59 @@ var VueCompilerCore = (() => {
   }
 
   // packages/compiler-core/transforms/transformText.ts
+  function isText(node) {
+    return node.type === 2 /* TEXT */ || node.type === 5 /* INTERPOLATION */;
+  }
   function transformText(node, context) {
-    if (node.type === 2 /* TEXT */) {
-      console.log("in text", node);
+    if (node.type === 0 /* ROOT */ || node.type === 1 /* ELEMENT */) {
       return () => {
-        console.log("out text", node);
+        console.log(node);
+        const children = node.children;
+        let hasText = false;
+        for (let i = 0; i < children.length; i++) {
+          const curChildren = children[i];
+          let currentContainer = null;
+          if (isText(curChildren)) {
+            hasText = true;
+            for (let j = i + 1; j < children.length; j++) {
+              const nextChildren = children[j];
+              if (isText(nextChildren)) {
+                if (!currentContainer) {
+                  currentContainer = children[i] = {
+                    type: 8 /* COMPOUND_EXPRESSION */,
+                    children: [curChildren]
+                  };
+                }
+                currentContainer.children.push(`+`, nextChildren);
+                children.splice(j, 1);
+                j--;
+              } else {
+                currentContainer = null;
+                break;
+              }
+            }
+          }
+        }
+        if (!hasText || children.length === 1) {
+          return;
+        }
+        for (let i = 0; i < children.length; i++) {
+          const curChild = children[i];
+          const args = [curChild];
+          if (isText(curChild) || curChild.type === 8 /* COMPOUND_EXPRESSION */) {
+            if (curChild.type !== 2 /* TEXT */) {
+              args.push(1 /* TEXT */);
+            }
+            children[i] = {
+              type: 12 /* TEXT_CALL */,
+              content: curChild,
+              codegenNode: createCallExpression(context, args)
+            };
+          }
+        }
       };
     }
-    if (node.type === 0 /* ROOT */ || node.type === 1 /* ELEMENT */) {
-    }
   }
-
-  // packages/compiler-core/src/runtimeHelpers.ts
-  var TO_DISPLAY_STRING = Symbol.for("TO_DSPLAY_STRING");
-  var helperMap = {
-    [TO_DISPLAY_STRING]: "toDisplayString"
-  };
 
   // packages/compiler-core/src/transform.ts
   function createTransformContext() {
@@ -277,6 +332,7 @@ var VueCompilerCore = (() => {
       helper(name) {
         const count = context.helpers.get(name) || 0;
         context.helpers[name] = count + 1;
+        return name;
       },
       nodeTransforms: [transformElement, transformText, transformExpression]
     };
@@ -313,6 +369,7 @@ var VueCompilerCore = (() => {
   function transform(ast) {
     const context = createTransformContext();
     traverse(ast, context);
+    debugger;
   }
 
   // packages/compiler-core/src/index.ts

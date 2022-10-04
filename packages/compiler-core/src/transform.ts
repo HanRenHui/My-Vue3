@@ -12,6 +12,7 @@ function createTransformContext() {
     helper(name) {
       const count = context.helpers.get(name) || 0
       context.helpers[name] = count + 1
+      return name
     },
     nodeTransforms: [transformElement, transformText, transformExpression]
   }
@@ -53,4 +54,5 @@ function traverse(ast, context) {
 export function transform(ast) {
   const context = createTransformContext()
   traverse(ast, context)
+  debugger
 }
