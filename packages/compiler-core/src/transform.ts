@@ -51,8 +51,10 @@ function traverse(ast, context) {
   }
 }
 
+function createRootCodegen(ast, context) {}
 export function transform(ast) {
   const context = createTransformContext()
   traverse(ast, context)
   debugger
+  createRootCodegen(ast, context)
 }

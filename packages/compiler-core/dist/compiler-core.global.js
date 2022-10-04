@@ -40,6 +40,20 @@ var VueCompilerCore = (() => {
       type: 14 /* JS_CALL_EXPRESSION */
     };
   }
+  function createObjectExpression(propirties) {
+    return {
+      type: 15 /* JS_OBJECT_EXPRESSION */,
+      propirties
+    };
+  }
+  function createVnodeCall(context, tag, propirties, children) {
+    return {
+      type: 13 /* VNODE_CALL */,
+      tag,
+      propirties,
+      children
+    };
+  }
 
   // packages/compiler-core/src/parse.ts
   function advancePositionWithMutation(context, source, endIndex) {
@@ -249,9 +263,24 @@ var VueCompilerCore = (() => {
   // packages/compiler-core/transforms/transformElement.ts
   function transformElement(node, context) {
     if (node.type === 1 /* ELEMENT */) {
-      console.log("in element", node.tag);
       return () => {
-        console.log("out element", node.tag);
+        const props = node.props || {};
+        const propirties = [];
+        for (const key in props) {
+          const value = props[key];
+          propirties.push({
+            key,
+            value: value.content
+          });
+        }
+        const propertyExpression = propirties.length ? createObjectExpression(propirties) : null;
+        let childrenNodes = null;
+        if (node.children.length === 1) {
+          childrenNodes = node.children[0];
+        } else {
+          childrenNodes = node.children;
+        }
+        node.codegenNode = createVnodeCall(context, node.tag, propertyExpression, childrenNodes);
       };
     }
   }
@@ -259,12 +288,8 @@ var VueCompilerCore = (() => {
   // packages/compiler-core/transforms/transformExpression.ts
   function transformExpression(node, context) {
     if (node.type === 5 /* INTERPOLATION */) {
-      console.log("in expression", node);
       const content = node.content.content;
       node.content.content = `_ctx.${content}`;
-      return () => {
-        console.log("out expression", node);
-      };
     }
   }
 
@@ -366,10 +391,13 @@ var VueCompilerCore = (() => {
       i++;
     }
   }
+  function createRootCodegen(ast, context) {
+  }
   function transform(ast) {
     const context = createTransformContext();
     traverse(ast, context);
     debugger;
+    createRootCodegen(ast, context);
   }
 
   // packages/compiler-core/src/index.ts

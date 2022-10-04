@@ -17,7 +17,8 @@ export const enum NodeTypes {
   TEXT_CALL, // 文本调用 需要单独给文本调用createTextContent 如果是TEXT的话 直接接innerText就好了
   // codegen
   VNODE_CALL, // 元素调用
-  JS_CALL_EXPRESSION // js调用表达式
+  JS_CALL_EXPRESSION, // js调用表达式
+  JS_OBJECT_EXPRESSION
 }
 
 // type可以是NodeTypes.TEXT  NodeTypes.INTERPOLATION COMPOUND_EXPRESSION
@@ -76,5 +77,19 @@ export function createCallExpression(context, args) {
     callee,
     arguments: args,
     type: NodeTypes.JS_CALL_EXPRESSION
+  }
+}
+export function createObjectExpression(propirties) {
+  return {
+    type: NodeTypes.JS_OBJECT_EXPRESSION,
+    propirties
+  }
+}
+export function createVnodeCall(context, tag, propirties, children) {
+  return {
+    type: NodeTypes.VNODE_CALL,
+    tag,
+    propirties,
+    children
   }
 }
