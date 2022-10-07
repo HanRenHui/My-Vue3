@@ -7,8 +7,6 @@ export function transformText(node, context) {
   if (node.type === NodeTypes.ROOT || node.type === NodeTypes.ELEMENT) {
     // do something
     return () => {
-      console.log(node)
-
       // 合并普通文本子节点和表达式节点
       const children = node.children
       // 标记是否有文本子节点

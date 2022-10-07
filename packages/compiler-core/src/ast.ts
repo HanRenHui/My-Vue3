@@ -1,4 +1,4 @@
-import { CREATE_TEXT } from './runtimeHelpers'
+import { CREATE_ELEMENT_VNODE, CREATE_TEXT } from './runtimeHelpers'
 
 export const enum NodeTypes {
   ROOT, // 根节点
@@ -86,6 +86,7 @@ export function createObjectExpression(propirties) {
   }
 }
 export function createVnodeCall(context, tag, propirties, children) {
+  context.helper(CREATE_ELEMENT_VNODE)
   return {
     type: NodeTypes.VNODE_CALL,
     tag,
