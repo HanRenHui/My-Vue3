@@ -1,6 +1,6 @@
-import { transformElement } from '../transforms/transformElement'
-import { transformExpression } from '../transforms/transformExpression'
-import { transformText } from '../transforms/transformText'
+import { transformElement } from './transforms/transformElement'
+import { transformExpression } from './transforms/transformExpression'
+import { transformText } from './transforms/transformText'
 import { createVnodeCall, NodeTypes } from './ast'
 import { CREATE_BLOCK_VNODE, CREATE_ELEMENT_VNODE, FRAGEMENT, OPEN_BLOCK, TO_DISPLAY_STRING } from './runtimeHelpers'
 
@@ -84,4 +84,5 @@ export function transform(ast) {
   traverse(ast, context)
   createRootCodegen(ast, context)
   ast.helpers = [...context.helpers.keys()]
+  return ast
 }

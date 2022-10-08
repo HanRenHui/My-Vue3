@@ -90,7 +90,7 @@ export function createVnodeCall(context, tag, propirties, children) {
   return {
     type: NodeTypes.VNODE_CALL,
     tag,
-    propirties,
+    props: propirties,
     children
   }
 }

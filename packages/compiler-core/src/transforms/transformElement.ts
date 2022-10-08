@@ -1,4 +1,4 @@
-import { createObjectExpression, createVnodeCall, NodeTypes } from '../src/ast'
+import { createObjectExpression, createVnodeCall, NodeTypes } from '../ast'
 
 export function transformElement(node, context) {
   if (node.type === NodeTypes.ELEMENT) {
@@ -6,11 +6,11 @@ export function transformElement(node, context) {
       // console.log('out element', node.tag)
       const props = node.props || {}
       const propirties = []
-      for (const key in props) {
-        const value = props[key]
+      for (let i = 0; i < props.length; i++) {
+        const p = props[i]
         propirties.push({
-          key,
-          value: value.content
+          key: p.name,
+          value: JSON.stringify(p.value.content)
         })
       }
 
@@ -23,7 +23,7 @@ export function transformElement(node, context) {
         childrenNodes = node.children
       }
 
-      node.codegenNode = createVnodeCall(context, node.tag, propertyExpression, childrenNodes)
+      node.codegenNode = createVnodeCall(context, JSON.stringify(node.tag), propertyExpression, childrenNodes)
     }
   }
 }

@@ -1,4 +1,4 @@
-import { NodeTypes } from '../src/ast'
+import { NodeTypes } from '../ast'
 
 export function transformExpression(node, context) {
   if (node.type === NodeTypes.INTERPOLATION) {

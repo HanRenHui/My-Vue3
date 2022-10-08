@@ -1,5 +1,5 @@
-import { PatchFlags } from '@vue3/shared'
-import { createCallExpression, NodeTypes } from '../src/ast'
+import { PatchFlagNames, PatchFlags } from '@vue3/shared'
+import { createCallExpression, NodeTypes } from '../ast'
 function isText(node) {
   return node.type === NodeTypes.TEXT || node.type === NodeTypes.INTERPOLATION
 }
@@ -45,11 +45,11 @@ export function transformText(node, context) {
 
       for (let i = 0; i < children.length; i++) {
         const curChild = children[i]
-        const args = [curChild]
         if (isText(curChild) || curChild.type === NodeTypes.COMPOUND_EXPRESSION) {
+          const args = [curChild]
           if (curChild.type !== NodeTypes.TEXT) {
             // 说明是动态节点 需要 传入patchFlags 做靶向更新
-            args.push(PatchFlags.TEXT)
+            args.push(PatchFlags.TEXT + `/* ${PatchFlagNames[PatchFlags.TEXT]} */`)
           }
           children[i] = {
             type: NodeTypes.TEXT_CALL, // 需要调用createTextNode

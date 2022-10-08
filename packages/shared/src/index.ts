@@ -40,3 +40,20 @@ export const enum PatchFlags {
   HOISTED = -1, // 表示静态节点，内容变化，不比较儿子
   BAIL = -2 // 表示diff算法应该结束
 }
+
+export const PatchFlagNames = {
+  [PatchFlags.TEXT]: `TEXT`,
+  [PatchFlags.CLASS]: `CLASS`,
+  [PatchFlags.STYLE]: `STYLE`,
+  [PatchFlags.PROPS]: `PROPS`,
+  [PatchFlags.FULL_PROPS]: `FULL_PROPS`,
+  [PatchFlags.HYDRATE_EVENTS]: `HYDRATE_EVENTS`,
+  [PatchFlags.STABLE_FRAGMENT]: `STABLE_FRAGMENT`,
+  [PatchFlags.KEYED_FRAGMENT]: `KEYED_FRAGMENT`,
+  [PatchFlags.UNKEYED_FRAGMENT]: `UNKEYED_FRAGMENT`,
+  [PatchFlags.NEED_PATCH]: `NEED_PATCH`,
+  [PatchFlags.DYNAMIC_SLOTS]: `DYNAMIC_SLOTS`,
+  [PatchFlags.DEV_ROOT_FRAGMENT]: `DEV_ROOT_FRAGMENT`,
+  [PatchFlags.HOISTED]: `HOISTED`,
+  [PatchFlags.BAIL]: `BAIL`
+}
