@@ -93,12 +93,15 @@ function genCallExpression(context, node) {
 
   context.push(')')
 }
+
 function genText(context, node) {
   context.push(JSON.stringify(node.content))
 }
+
 function genExpression(context, node) {
   context.push(node.content)
 }
+
 function genNode(context, node) {
   switch (node.type) {
     case NodeTypes.TEXT:
