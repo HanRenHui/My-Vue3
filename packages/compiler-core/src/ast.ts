@@ -1,24 +1,24 @@
 import { CREATE_ELEMENT_VNODE, CREATE_TEXT } from './runtimeHelpers'
 
 export const enum NodeTypes {
-  ROOT, // 根节点
-  ELEMENT, // 元素
-  TEXT, // 文本
-  COMMENT, // 注释
-  SIMPLE_EXPRESSION, // 简单表达式  aaa   :a="aa"
-  INTERPOLATION, // 模板表达式  {{aaa}}
-  ATTRIBUTE,
+  ROOT, // 根节点 0
+  ELEMENT, // 元素 1
+  TEXT, // 文本 2
+  COMMENT, // 注释 3
+  SIMPLE_EXPRESSION, // 简单表达式  aaa   :a="aa" 4
+  INTERPOLATION, // 模板表达式  {{aaa}} 5
+  ATTRIBUTE, // 6
   DIRECTIVE,
   // containers
-  COMPOUND_EXPRESSION, // 复合表达式  {{aa}} abc
-  IF,
-  IF_BRANCH,
-  FOR,
-  TEXT_CALL, // 文本调用 需要单独给文本调用createTextContent 如果是TEXT的话 直接接innerText就好了
+  COMPOUND_EXPRESSION, // 复合表达式  {{aa}} abc // 8
+  IF, // 9
+  IF_BRANCH, // 10
+  FOR, // 11
+  TEXT_CALL, // 12 文本调用 需要单独给文本调用createTextContent 如果是TEXT的话 直接接innerText就好了
   // codegen
-  VNODE_CALL, // 元素调用
-  JS_CALL_EXPRESSION, // js调用表达式
-  JS_OBJECT_EXPRESSION
+  VNODE_CALL, // 13 元素调用
+  JS_CALL_EXPRESSION, // 14 js调用表达式
+  JS_OBJECT_EXPRESSION // 15
 }
 
 // type可以是NodeTypes.TEXT  NodeTypes.INTERPOLATION COMPOUND_EXPRESSION
